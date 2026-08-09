@@ -1,0 +1,6 @@
+{
+  "name": "AI Frands",
+  "description": "An all-in-one platform for Computer Science students featuring curriculum roadmaps, AI tools, project tracking, tech stack management, and AI coding assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
