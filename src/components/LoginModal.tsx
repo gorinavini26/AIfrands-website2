@@ -17,6 +17,29 @@ interface LoginModalProps {
   onShowToast: (msg: string) => void;
 }
 
+const LoadingSpinner: React.FC = () => (
+  <svg
+    className="animate-spin h-4 w-4 text-current"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <circle
+      className="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      strokeWidth="4"
+    />
+    <path
+      className="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+    />
+  </svg>
+);
+
 export const LoginModal: React.FC<LoginModalProps> = ({
   isOpen,
   onClose,
@@ -38,20 +61,43 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
   const parseFirebaseError = (err: any): string => {
     const code = err?.code || '';
-    switch (code) {
-      case 'auth/invalid-email':
-        return 'Please enter a valid email address.';
-      case 'auth/user-not-found':
-      case 'auth/wrong-password':
-      case 'auth/invalid-credential':
-        return 'Invalid email or password.';
-      case 'auth/email-already-in-use':
-        return 'An account with this email address already exists.';
-      case 'auth/weak-password':
-        return 'Password is too weak. Please use at least 6 characters.';
-      default:
-        return err?.message || 'Authentication failed.';
+    const message = err?.message || '';
+
+    if (
+      code === 'auth/user-not-found' ||
+      code === 'auth/wrong-password' ||
+      code === 'auth/invalid-credential' ||
+      code === 'auth/invalid-login-credentials'
+    ) {
+      return 'Incorrect email or password. Please try again.';
     }
+    if (code === 'auth/email-already-in-use') {
+      return 'An account with this email address already exists. Please log in instead.';
+    }
+    if (code === 'auth/invalid-email') {
+      return 'Please enter a valid email address.';
+    }
+    if (code === 'auth/weak-password') {
+      return 'Password is too weak. Please use at least 6 characters.';
+    }
+    if (code === 'auth/too-many-requests') {
+      return 'Too many failed attempts. Please wait a moment and try again.';
+    }
+    if (code === 'auth/popup-closed-by-user') {
+      return 'Google Sign-In was cancelled.';
+    }
+    if (code === 'auth/operation-not-allowed') {
+      return 'Authentication service is temporarily unavailable. Please try again.';
+    }
+    if (code === 'auth/network-request-failed') {
+      return 'Network connection issue. Please check your internet connection.';
+    }
+
+    if (message.includes('auth/') || message.includes('Firebase:')) {
+      return 'Something went wrong. Please try again.';
+    }
+
+    return message || 'Something went wrong. Please try again.';
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
@@ -64,7 +110,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setErrorMsg('');
     try {
       await sendPasswordResetEmail(auth, email.trim());
-      setSuccessMsg(`Reset email sent to ${email.trim()}!`);
+      setSuccessMsg(`Reset email sent to ${email.trim()}! Check your inbox.`);
       onShowToast('Password reset email sent.');
     } catch (err: any) {
       setErrorMsg(parseFirebaseError(err));
@@ -87,7 +133,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           return;
         }
         const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
-        await updateProfile(userCredential.user, { displayName: name.trim() });
+        try {
+          await updateProfile(userCredential.user, { displayName: name.trim() });
+        } catch (profileErr) {
+          console.warn('Could not set display name:', profileErr);
+        }
         const token = await userCredential.user.getIdToken();
         const userName = name.trim() || email.split('@')[0];
         onLoginSuccess(token, { name: userName, email: email.trim(), year });
@@ -174,23 +224,32 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <input
                 type="email"
                 required
+                disabled={isLoading}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="user@csportal.edu"
-                className="w-full bg-slate-50 text-slate-800 text-xs rounded-xl py-2 px-3 focus:outline-none border border-slate-200 focus:ring-1 focus:ring-indigo-500 font-mono"
+                className="w-full bg-slate-50 text-slate-800 text-xs rounded-xl py-2 px-3 focus:outline-none border border-slate-200 focus:ring-1 focus:ring-indigo-500 font-mono disabled:opacity-50"
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 bg-indigo-600 text-white font-extrabold text-xs rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              className="w-full py-2.5 bg-indigo-600 text-white font-extrabold text-xs rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-60"
             >
-              {isLoading ? 'Sending Link...' : 'Send Password Reset Link'}
+              {isLoading ? (
+                <>
+                  <LoadingSpinner />
+                  <span>Sending Link...</span>
+                </>
+              ) : (
+                'Send Password Reset Link'
+              )}
             </button>
 
             <button
               type="button"
+              disabled={isLoading}
               onClick={() => {
                 setIsResetMode(false);
                 setErrorMsg('');
@@ -212,10 +271,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   <input
                     type="text"
                     required
+                    disabled={isLoading}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Alex Smith"
-                    className="w-full bg-slate-50 text-slate-800 text-xs rounded-xl py-2 px-3 focus:outline-none border border-slate-200 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full bg-slate-50 text-slate-800 text-xs rounded-xl py-2 px-3 focus:outline-none border border-slate-200 focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
                   />
                 </div>
 
@@ -225,8 +285,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   </label>
                   <select
                     value={year}
+                    disabled={isLoading}
                     onChange={(e) => setYear(e.target.value)}
-                    className="w-full bg-slate-50 text-slate-800 text-xs rounded-xl py-2 px-3 focus:outline-none border border-slate-200 focus:ring-1 focus:ring-indigo-500 font-extrabold"
+                    className="w-full bg-slate-50 text-slate-800 text-xs rounded-xl py-2 px-3 focus:outline-none border border-slate-200 focus:ring-1 focus:ring-indigo-500 font-extrabold disabled:opacity-50"
                   >
                     <option value="Year 1">Year 1 (Fundamentals)</option>
                     <option value="Year 2">Year 2 (Core CS)</option>
@@ -242,16 +303,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 Student Email
               </label>
               <div className="relative flex items-center">
-                <span className="material-symbols-outlined absolute left-3 text-slate-400 text-base">
+                <span className="material-symbols-outlined absolute left-3 text-slate-400 text-base pointer-events-none">
                   mail
                 </span>
                 <input
                   type="email"
                   required
+                  disabled={isLoading}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="user@csportal.edu"
-                  className="w-full bg-slate-50 text-slate-800 text-xs rounded-xl py-2 pl-9 pr-3 focus:outline-none border border-slate-200 focus:ring-1 focus:ring-indigo-500 font-mono"
+                  className="w-full bg-slate-50 text-slate-800 text-xs rounded-xl py-2 pl-9 pr-3 focus:outline-none border border-slate-200 focus:ring-1 focus:ring-indigo-500 font-mono disabled:opacity-50"
                 />
               </div>
             </div>
@@ -264,6 +326,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 {!isSignUp && (
                   <button
                     type="button"
+                    disabled={isLoading}
                     onClick={() => {
                       setIsResetMode(true);
                       setErrorMsg('');
@@ -276,19 +339,21 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 )}
               </div>
               <div className="relative flex items-center">
-                <span className="material-symbols-outlined absolute left-3 text-slate-400 text-base">
+                <span className="material-symbols-outlined absolute left-3 text-slate-400 text-base pointer-events-none">
                   lock
                 </span>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
+                  disabled={isLoading}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full bg-slate-50 text-slate-800 text-xs rounded-xl py-2 pl-9 pr-9 focus:outline-none border border-slate-200 focus:ring-1 focus:ring-indigo-500 font-mono"
+                  className="w-full bg-slate-50 text-slate-800 text-xs rounded-xl py-2 pl-9 pr-9 focus:outline-none border border-slate-200 focus:ring-1 focus:ring-indigo-500 font-mono disabled:opacity-50"
                 />
                 <button
                   type="button"
+                  disabled={isLoading}
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
@@ -302,10 +367,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 bg-indigo-600 text-white font-extrabold text-xs rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              className="w-full py-2.5 bg-indigo-600 text-white font-extrabold text-xs rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-60"
             >
               {isLoading ? (
-                <span>Authenticating...</span>
+                <>
+                  <LoadingSpinner />
+                  <span>Authenticating...</span>
+                </>
               ) : (
                 <>
                   <span>{isSignUp ? 'Create Account' : 'Log In'}</span>
@@ -332,27 +400,36 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               type="button"
               disabled={isLoading}
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-extrabold text-slate-800 border border-slate-200 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-extrabold text-slate-800 border border-slate-200 transition-colors cursor-pointer disabled:opacity-60"
             >
-              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.15C3.26 21.3 7.31 24 12 24z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.28 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.39l3.99-3.15z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.61l3.99 3.15c.95-2.85 3.6-4.96 6.72-4.96z"
-                />
-              </svg>
-              <span>Continue with Google</span>
+              {isLoading ? (
+                <>
+                  <LoadingSpinner />
+                  <span>Connecting...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.15C3.26 21.3 7.31 24 12 24z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.28 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.39l3.99-3.15z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.61l3.99 3.15c.95-2.85 3.6-4.96 6.72-4.96z"
+                    />
+                  </svg>
+                  <span>Continue with Google</span>
+                </>
+              )}
             </button>
           </>
         )}
@@ -375,4 +452,3 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     </div>
   );
 };
-
