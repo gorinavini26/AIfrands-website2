@@ -186,7 +186,7 @@ app.post('/api/contact', async (req, res) => {
     const result = await sendContactNotificationEmail({
       name,
       senderEmail: email,
-      subject: subject || 'CS Portal Inquiry',
+      subject: subject || 'AI Frands Inquiry',
       message,
       to: process.env.ADMIN_EMAIL || 'admin@csportal.edu',
     });
@@ -337,7 +337,7 @@ app.post('/api/notebooks', (req, res) => {
     summary: summary || 'Custom study synthesis notes created in portal.',
     updatedAt: 'Just now',
     fileCount: 1,
-    content: content || `# ${title}\n\nCategory: ${category}\n\nNotes created on CS Portal.`,
+    content: content || `# ${title}\n\nCategory: ${category}\n\nNotes created on AI Frands.`,
   };
 
   notebooks.unshift(newNotebook);
@@ -375,12 +375,12 @@ app.post('/api/ai/code-assistant', async (req, res) => {
   if (!aiClient) {
     // Graceful fallback response when API key is not configured
     return res.json({
-      text: `[CS Portal AI Tutor - Offline Mode]\n\nHere is guidance on "${prompt}":\n\n1. Check your logic and data structure constraints.\n2. Ensure proper memory/pointer initialization if in C/C++.\n3. Make sure to test boundary cases (e.g. empty inputs, null pointers).\n\n(Tip: Attach your Gemini API Key in Settings > Secrets to activate real-time Gemini AI code reasoning!)`,
+      text: `[AI Frands AI Tutor - Offline Mode]\n\nHere is guidance on "${prompt}":\n\n1. Check your logic and data structure constraints.\n2. Ensure proper memory/pointer initialization if in C/C++.\n3. Make sure to test boundary cases (e.g. empty inputs, null pointers).\n\n(Tip: Attach your Gemini API Key in Settings > Secrets to activate real-time Gemini AI code reasoning!)`,
     });
   }
 
   try {
-    const systemInstruction = `You are the CS Portal AI Coding Assistant & CS Tutor for BTech Computer Science students.
+    const systemInstruction = `You are the AI Frands AI Coding Assistant & CS Tutor for BTech Computer Science students.
 Provide precise, well-structured, encouraging technical guidance, code explanations, algorithmic complexity (Big O) breakdowns, and debugging tips. Keep responses formatted in clean Markdown.`;
 
     const fullPrompt = context
