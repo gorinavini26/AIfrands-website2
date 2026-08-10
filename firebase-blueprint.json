@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and streak statistics",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "studentId": { "type": "string" },
+        "year": { "type": "string" },
+        "email": { "type": "string" },
+        "githubUrl": { "type": "string" },
+        "bio": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "streakDays": { "type": "number" }
+      },
+      "required": ["id", "name", "email", "streakDays"]
+    },
+    "UserData": {
+      "title": "UserData",
+      "description": "All persistent user progress data scoped to UID",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "profile": { "type": "object" },
+        "roadmapModules": { "type": "array" },
+        "assignments": { "type": "array" },
+        "notebooks": { "type": "array" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "profile", "roadmapModules", "assignments", "notebooks"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserData",
+      "description": "Per-user scoped profile and learning progress data"
+    }
+  }
+}

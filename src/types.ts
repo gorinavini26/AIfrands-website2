@@ -11,6 +11,7 @@ export interface UserProfile {
   primaryLanguages: string[];
   toolsAndIdes: string[];
   editorFontSize: number;
+  highDensityTheme?: boolean;
   notifications: {
     assignmentDeadlines: boolean;
     portalUpdates: boolean;

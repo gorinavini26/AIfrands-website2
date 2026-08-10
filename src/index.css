@@ -32,9 +32,143 @@
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Poppins', 'Plus Jakarta Sans', sans-serif;
+  }
+
   code, pre, .font-code-sm {
     font-family: 'JetBrains Mono', monospace;
   }
+}
+
+/* 3D Duolingo-style Tactile UI Classes */
+.btn-3d {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  border-radius: 1rem;
+  transition: all 0.12s cubic-bezier(0.2, 0.8, 0.2, 1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.btn-3d:hover {
+  transform: translateY(-2px);
+}
+
+.btn-3d:active {
+  transform: translateY(3px) !important;
+  box-shadow: none !important;
+}
+
+/* 3D Button Color Variations */
+.btn-3d-indigo {
+  background-color: #6366f1;
+  color: #ffffff;
+  border-bottom: 4px solid #4338ca;
+  box-shadow: 0 4px 0 0 #4338ca;
+}
+.btn-3d-indigo:hover {
+  background-color: #4f46e5;
+  box-shadow: 0 6px 0 0 #3730a3;
+}
+
+.btn-3d-emerald {
+  background-color: #10b981;
+  color: #ffffff;
+  border-bottom: 4px solid #047857;
+  box-shadow: 0 4px 0 0 #047857;
+}
+.btn-3d-emerald:hover {
+  background-color: #059669;
+  box-shadow: 0 6px 0 0 #065f46;
+}
+
+.btn-3d-amber {
+  background-color: #f59e0b;
+  color: #ffffff;
+  border-bottom: 4px solid #b45309;
+  box-shadow: 0 4px 0 0 #b45309;
+}
+.btn-3d-amber:hover {
+  background-color: #d97706;
+  box-shadow: 0 6px 0 0 #92400e;
+}
+
+.btn-3d-rose {
+  background-color: #f43f5e;
+  color: #ffffff;
+  border-bottom: 4px solid #be123c;
+  box-shadow: 0 4px 0 0 #be123c;
+}
+.btn-3d-rose:hover {
+  background-color: #e11d48;
+  box-shadow: 0 6px 0 0 #9f1239;
+}
+
+.btn-3d-purple {
+  background-color: #a855f7;
+  color: #ffffff;
+  border-bottom: 4px solid #7e22ce;
+  box-shadow: 0 4px 0 0 #7e22ce;
+}
+.btn-3d-purple:hover {
+  background-color: #9333ea;
+  box-shadow: 0 6px 0 0 #6b21a8;
+}
+
+.btn-3d-slate {
+  background-color: #ffffff;
+  color: #1e293b;
+  border: 2px solid #e2e8f0;
+  border-bottom: 4px solid #cbd5e1;
+  box-shadow: 0 4px 0 0 #cbd5e1;
+}
+.btn-3d-slate:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  border-bottom-color: #94a3b8;
+  box-shadow: 0 6px 0 0 #94a3b8;
+}
+
+/* 3D Depth Card */
+.card-3d {
+  background-color: #ffffff;
+  border-radius: 1.25rem;
+  border: 2px solid #f1f5f9;
+  border-bottom: 4px solid #e2e8f0;
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-3d:hover {
+  transform: translateY(-4px);
+  border-bottom-color: #cbd5e1;
+  box-shadow: 0 16px 28px -8px rgba(99, 102, 241, 0.12), 0 4px 0 0 #cbd5e1;
+}
+
+/* Chunky Badges */
+.badge-chunky {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.025em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Micro-interaction Bounce */
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.animate-bounce-subtle {
+  animation: bounce-subtle 2.2s infinite ease-in-out;
 }
 
 /* High Density custom theme utility classes */
@@ -63,4 +197,30 @@
 .border-outline-variant\/30 { border-color: #cbd5e1; }
 
 .font-code-sm { font-family: 'JetBrains Mono', monospace; }
+
+/* High Density Theme Overrides */
+body.high-density {
+  font-size: 0.9375rem;
+}
+
+body.high-density .py-6 {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+body.high-density .p-5 {
+  padding: 0.875rem !important;
+}
+
+body.high-density .p-6 {
+  padding: 1rem !important;
+}
+
+body.high-density .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem !important;
+}
+
+body.high-density .gap-6 {
+  gap: 1rem !important;
+}
 

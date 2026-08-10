@@ -80,19 +80,19 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right Area: Streak Flame, AI Tutor Button, Notifications & User */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Streak Pill */}
+        {/* Streak Pill & XP Badge */}
         <div
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border-2 border-amber-300 rounded-2xl text-amber-900 font-extrabold text-xs shadow-2xs cursor-default"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 border-b-4 border-amber-300 rounded-2xl text-amber-900 font-extrabold text-xs shadow-xs cursor-default"
           title={`${profile.streakDays} Day Active Streak!`}
         >
-          <span className="text-base animate-bounce">🔥</span>
-          <span>{profile.streakDays} Days</span>
+          <span className="text-base animate-bounce-subtle">🔥</span>
+          <span>{profile.streakDays}d Streak</span>
         </div>
 
-        {/* AI Tutor Primary Button */}
+        {/* AI Tutor Primary Button with 3D press-down */}
         <button
           onClick={onOpenAIAssistant}
-          className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-extrabold transition-all shadow-md shadow-indigo-600/20 active:scale-95 cursor-pointer border-b-2 border-indigo-800"
+          className="btn-3d btn-3d-indigo px-3.5 py-2 text-xs font-extrabold flex items-center gap-1.5"
           title="Open AI Tutor & Assistant"
         >
           <span className="material-symbols-outlined text-[18px]">
@@ -124,8 +124,16 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={onOpenLogin}
               className="flex items-center gap-2 cursor-pointer hover:opacity-85 transition-opacity"
             >
-              <div className="w-8 h-8 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center text-white font-extrabold text-xs shadow-xs border border-indigo-300">
-                {profile.name ? profile.name.slice(0, 2).toUpperCase() : 'CS'}
+              <div className="w-8 h-8 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center text-white font-extrabold text-xs shadow-xs border border-indigo-300 overflow-hidden">
+                {profile.avatarUrl ? (
+                  <img
+                    src={profile.avatarUrl}
+                    alt={profile.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  profile.name ? profile.name.slice(0, 2).toUpperCase() : 'CS'
+                )}
               </div>
             </div>
 

@@ -1,40 +1,12 @@
 import React, { useState } from 'react';
 import { Logo } from './Logo';
-import {
-  auth,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from '../firebase';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess: (token: string, user: { name: string; email: string; year?: string; studentId?: string }) => void;
+  onLoginSuccess: (token: string, user: { name: string; email: string }) => void;
   onShowToast: (msg: string) => void;
 }
-
-const LoadingSpinner: React.FC = () => (
-  <svg
-    className="animate-spin h-4 w-4 text-current"
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-  >
-    <circle
-      className="opacity-25"
-      cx="12"
-      cy="12"
-      r="10"
-      stroke="currentColor"
-      strokeWidth="4"
-    />
-    <path
-      className="opacity-75"
-      fill="currentColor"
-      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-    />
-  </svg>
-);
 
 export const LoginModal: React.FC<LoginModalProps> = ({
   isOpen,
@@ -42,67 +14,49 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onLoginSuccess,
   onShowToast,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   if (!isOpen) return null;
 
-  const parseFirebaseError = (err: any): string => {
-    console.error('[Firebase Auth Error Details]:', {
-      code: err?.code,
-      message: err?.message,
-      fullError: err,
-      domain: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
-    });
-
-    const code = err?.code || '';
-    const message = err?.message || '';
-    const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'your live domain';
-
-    if (code === 'auth/popup-closed-by-user') {
-      return 'Google Sign-In was cancelled.';
-    }
-    if (code === 'auth/unauthorized-domain') {
-      return `Domain "${currentDomain}" is not authorized. Add "${currentDomain}" to Firebase Console > Authentication > Settings > Authorized domains.`;
-    }
-    if (code === 'auth/unauthorized-client') {
-      return 'Unauthorized Client ID or origin. Check Google Cloud / Firebase Console settings.';
-    }
-    if (code === 'auth/network-request-failed') {
-      return 'Network connection issue. Please check your internet connection.';
-    }
-
-    if (message.includes('auth/') || message.includes('Firebase:')) {
-      return 'Google Authentication failed. Please try again.';
-    }
-
-    return message || 'Authentication failed. Please try again.';
+  const validateEmail = (val: string): boolean => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     setErrorMsg('');
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
-      const userName = result.user.displayName || 'Google User';
-      onLoginSuccess(token, { name: userName, email: result.user.email || '' });
-      onShowToast(`Logged in with Google as ${userName}!`);
-      onClose();
-    } catch (err: any) {
-      setErrorMsg(parseFirebaseError(err));
-    } finally {
-      setIsLoading(false);
+
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedName) {
+      setErrorMsg('Please enter your name.');
+      return;
     }
+
+    if (!trimmedEmail) {
+      setErrorMsg('Please enter your email address.');
+      return;
+    }
+
+    if (!validateEmail(trimmedEmail)) {
+      setErrorMsg('Please enter a valid email address.');
+      return;
+    }
+
+    onLoginSuccess('local_token', { name: trimmedName, email: trimmedEmail });
+    onShowToast(`Welcome, ${trimmedName}! 🚀`);
+    onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="relative w-full max-w-sm bg-white border border-slate-200 rounded-2xl p-6 shadow-2xl space-y-5 text-center">
+      <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 text-center text-slate-100">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded transition-colors"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 p-1.5 rounded-full hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <span className="material-symbols-outlined text-base">close</span>
         </button>
@@ -112,58 +66,66 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <Logo size="md" showText={false} />
           </div>
 
-          <h2 className="text-xl text-slate-900 font-extrabold">
-            Welcome to AI Frands
+          <h2 className="text-xl text-white font-extrabold flex items-center justify-center gap-2">
+            Welcome to AI Frands 👋
           </h2>
-          <p className="text-xs text-slate-500 max-w-xs mx-auto font-medium">
-            Sign in with your Google account to access your CS portal dashboard.
+          <p className="text-xs text-slate-400 max-w-xs mx-auto font-medium">
+            Enter your details to switch accounts or resume learning.
           </p>
         </div>
 
         {errorMsg && (
-          <div className="p-2.5 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200 text-left font-medium">
+          <div className="p-3 bg-red-950/80 text-red-200 text-xs rounded-2xl border border-red-800 text-left font-semibold">
             {errorMsg}
           </div>
         )}
 
-        <button
-          type="button"
-          disabled={isLoading}
-          onClick={handleGoogleLogin}
-          className="w-full flex items-center justify-center gap-2.5 py-3 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 rounded-xl text-xs sm:text-sm font-extrabold text-white transition-all shadow-md cursor-pointer disabled:opacity-60"
-        >
-          {isLoading ? (
-            <>
-              <LoadingSpinner />
-              <span>Connecting to Google...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.15C3.26 21.3 7.31 24 12 24z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.28 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.39l3.99-3.15z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.61l3.99 3.15c.95-2.85 3.6-4.96 6.72-4.96z"
-                />
-              </svg>
-              <span>Sign in with Google</span>
-            </>
-          )}
-        </button>
+        <form onSubmit={handleSubmit} className="space-y-3.5 text-left">
+          <div className="space-y-1">
+            <label className="block text-[11px] font-extrabold text-slate-300 uppercase tracking-wider">
+              Your Name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (errorMsg) setErrorMsg('');
+              }}
+              placeholder="e.g. Alex Rivera"
+              className="w-full bg-slate-950 text-white placeholder-slate-500 text-xs font-semibold rounded-xl p-3 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+              required
+            />
+          </div>
 
-        <div className="pt-1 text-center font-mono text-[10px] text-slate-400">
-          Firebase Auth
+          <div className="space-y-1">
+            <label className="block text-[11px] font-extrabold text-slate-300 uppercase tracking-wider">
+              Your Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errorMsg) setErrorMsg('');
+              }}
+              placeholder="e.g. alex@university.edu"
+              className="w-full bg-slate-950 text-white placeholder-slate-500 text-xs font-semibold rounded-xl p-3 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full py-3.5 mt-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-indigo-500/20 border-b-2 border-purple-800 transition-all cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>Let's Go</span>
+            <span>🚀</span>
+          </button>
+        </form>
+
+        <div className="pt-1 font-mono text-[10px] text-slate-500">
+          Instant Session • Friction-Free
         </div>
       </div>
     </div>

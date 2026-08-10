@@ -86,14 +86,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => handleNavClick(item.id)}
                 className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold tracking-wide transition-all cursor-pointer text-left ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25 border-b-2 border-indigo-800 scale-[1.02]'
-                    : 'text-slate-300 hover:bg-slate-800/90 hover:text-white'
+                    ? 'btn-3d btn-3d-indigo w-full border-b-4 border-indigo-900 shadow-lg shadow-indigo-600/30'
+                    : 'text-slate-300 hover:bg-slate-800/90 hover:text-white border-2 border-transparent hover:border-slate-700/60'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <span
                     className={`material-symbols-outlined text-[20px] ${
-                      isActive ? 'text-amber-300' : 'text-slate-400'
+                      isActive ? 'text-amber-300 animate-bounce-subtle' : 'text-slate-400'
                     }`}
                   >
                     {item.icon}
@@ -102,9 +102,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
 
                 <span
-                  className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                  className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider ${
                     isActive
-                      ? 'bg-indigo-700/80 text-indigo-100 border border-indigo-400/40'
+                      ? 'bg-amber-400 text-slate-950 shadow-xs'
                       : 'bg-slate-800 text-slate-400 border border-slate-700/50'
                   }`}
                 >
@@ -139,8 +139,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-extrabold text-xs shadow-xs border border-indigo-400/30">
-                  {profile.name ? profile.name.slice(0, 2).toUpperCase() : 'CS'}
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-extrabold text-xs shadow-xs border border-indigo-400/30 overflow-hidden">
+                  {profile.avatarUrl ? (
+                    <img
+                      src={profile.avatarUrl}
+                      alt={profile.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    profile.name ? profile.name.slice(0, 2).toUpperCase() : 'CS'
+                  )}
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-extrabold text-slate-100 group-hover:text-indigo-300 transition-colors truncate max-w-[110px]">

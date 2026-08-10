@@ -13,6 +13,7 @@ export const initialProfile: UserProfile = {
   primaryLanguages: ['Python', 'C++', 'Rust'],
   toolsAndIdes: ['Cursor', 'Neovim', 'Docker'],
   editorFontSize: 14,
+  highDensityTheme: false,
   notifications: {
     assignmentDeadlines: true,
     portalUpdates: false,

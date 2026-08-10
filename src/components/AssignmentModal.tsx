@@ -6,6 +6,7 @@ interface AssignmentModalProps {
   onClose: () => void;
   onSubmitAssignment: (assignmentId: string, submissionCode: string) => void;
   onShowToast: (msg: string) => void;
+  editorFontSize?: number;
 }
 
 export const AssignmentModal: React.FC<AssignmentModalProps> = ({
@@ -13,12 +14,13 @@ export const AssignmentModal: React.FC<AssignmentModalProps> = ({
   onClose,
   onSubmitAssignment,
   onShowToast,
+  editorFontSize = 14,
 }) => {
   if (!assignment) return null;
 
   const [code, setCode] = useState(
     assignment.submissionCode ||
-      `// Submission for ${assignment.title}\n// Course: ${assignment.course}\n\n#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Binary Search Tree initialized!" << endl;\n    return 0;\n}`
+      `// Write your solution for ${assignment.filename} here\n#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello CS201!" << endl;\n    return 0;\n}`
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,70 +33,68 @@ export const AssignmentModal: React.FC<AssignmentModalProps> = ({
       setIsSubmitting(false);
       onShowToast(`Submitted ${assignment.filename} successfully!`);
       onClose();
-    }, 800);
+    }, 600);
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 max-w-2xl w-full space-y-4 shadow-2xl">
-        <div className="flex justify-between items-start pb-3 border-b border-slate-200">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div className="bg-slate-900 text-white rounded-2xl p-6 max-w-2xl w-full space-y-4 border border-slate-800 shadow-2xl">
+        <div className="flex items-start justify-between">
           <div>
-            <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold text-[10px] uppercase tracking-wider border border-indigo-200">
-              {assignment.course}
-            </span>
-            <h3 className="text-base font-bold text-slate-900 mt-1">
-              {assignment.title}
-            </h3>
-            <p className="text-xs text-slate-500 font-mono mt-0.5">
-              File target: {assignment.filename} | {assignment.dueDate}
-            </p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold text-xs">
+                {assignment.course}
+              </span>
+              <span className="text-xs text-slate-400 font-semibold">{assignment.dueDate}</span>
+            </div>
+            <h2 className="text-xl font-black">{assignment.title}</h2>
+            <p className="text-xs text-slate-400 mt-1">File: {assignment.filename}</p>
           </div>
-
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+            className="text-slate-400 hover:text-white p-1 rounded-lg"
           >
-            <span className="material-symbols-outlined text-sm">close</span>
+            <span className="material-symbols-outlined">close</span>
           </button>
         </div>
 
-        <p className="text-xs text-slate-600 leading-relaxed">
-          {assignment.description}
-        </p>
+        <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs text-slate-300">
+          <p className="font-semibold text-slate-200 mb-1">Problem Description:</p>
+          <p>{assignment.description}</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
-              Source Code / Solution Editor
+            <label className="block text-xs font-bold text-slate-300 mb-2">
+              Code Submission (.cpp / .py / .java)
             </label>
             <textarea
               rows={8}
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="w-full bg-slate-50 text-slate-800 font-mono text-xs p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none leading-relaxed border border-slate-200"
+              style={{ fontSize: `${editorFontSize}px` }}
+              className="w-full bg-slate-950 text-emerald-400 font-mono p-3.5 rounded-2xl border border-slate-800 focus:border-indigo-500 focus:outline-none"
             />
           </div>
 
-          <div className="flex justify-between items-center pt-1">
-            <span className="text-xs text-slate-500 font-mono">
-              Status: <span className="font-bold text-slate-800">{assignment.status}</span>
+          <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+            <span className="text-xs text-slate-400">
+              Status: <strong className="text-emerald-400 font-extrabold">{assignment.status}</strong>
             </span>
-
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition-colors"
+                className="btn-3d btn-3d-slate px-4 py-2 text-xs text-slate-900 font-extrabold"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition-colors shadow-xs flex items-center gap-1.5"
+                className="btn-3d btn-3d-emerald px-5 py-2 text-xs font-extrabold"
               >
-                <span className="material-symbols-outlined text-xs">upload</span>
-                {isSubmitting ? 'Uploading...' : 'Submit Solution'}
+                {isSubmitting ? 'Submitting...' : 'Submit Solution 🚀'}
               </button>
             </div>
           </div>

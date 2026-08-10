@@ -33,7 +33,7 @@ export const ResourcesView: React.FC<ResourcesViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col w-full text-slate-800 bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
+    <div className="flex flex-col w-full text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="max-w-7xl mx-auto w-full space-y-8">
         
         {/* HERO BANNER */}
@@ -53,7 +53,7 @@ export const ResourcesView: React.FC<ResourcesViewProps> = ({
           <div className="shrink-0">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="py-3.5 px-6 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm rounded-2xl shadow-lg border-b-4 border-amber-600 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-2 cursor-pointer"
+              className="btn-3d btn-3d-amber py-3.5 px-6 text-slate-950 font-extrabold text-sm flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-lg">add</span>
               <span>Create Study Notebook</span>
@@ -67,11 +67,11 @@ export const ResourcesView: React.FC<ResourcesViewProps> = ({
             <div
               key={nb.id}
               onClick={() => onOpenNotebook(nb)}
-              className="bg-white border-2 border-slate-200/90 rounded-3xl p-6 shadow-2xs hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group space-y-4"
+              className="card-3d p-6 cursor-pointer flex flex-col justify-between group space-y-4 border-l-4 border-l-indigo-500"
             >
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="px-3 py-1 bg-indigo-100 text-indigo-800 font-extrabold text-[10px] rounded-full uppercase">
+                  <span className="px-3 py-1 bg-indigo-100 text-indigo-800 font-extrabold text-[10px] rounded-full uppercase tracking-wider">
                     {nb.category}
                   </span>
                   <span className="text-[10px] text-slate-400 font-extrabold font-mono">
@@ -96,7 +96,7 @@ export const ResourcesView: React.FC<ResourcesViewProps> = ({
                   {nb.fileCount} Sources Linked
                 </span>
 
-                <button className="py-2 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-extrabold transition-all shadow-xs flex items-center gap-1 border-b-2 border-indigo-800 active:border-b-0 active:translate-y-0.5">
+                <button className="btn-3d btn-3d-indigo py-2 px-4 text-xs font-extrabold flex items-center gap-1">
                   <span>Read Notes</span>
                   <span className="material-symbols-outlined text-xs">arrow_forward</span>
                 </button>

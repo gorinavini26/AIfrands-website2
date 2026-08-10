@@ -3,6 +3,7 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInAnonymously,
   signOut,
   sendPasswordResetEmail,
   GoogleAuthProvider,
@@ -24,6 +25,7 @@ export const db =
 export {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInAnonymously,
   signOut,
   sendPasswordResetEmail,
   GoogleAuthProvider,

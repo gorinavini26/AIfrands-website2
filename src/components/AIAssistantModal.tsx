@@ -149,7 +149,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="py-3 px-5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs rounded-2xl shadow-md border-b-4 border-amber-600 active:border-b-0 active:translate-y-0.5 transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1"
+            className="btn-3d btn-3d-amber py-3 px-5 text-slate-950 font-extrabold text-xs disabled:opacity-50 flex items-center gap-1"
           >
             <span>Send</span>
             <span className="material-symbols-outlined text-sm">send</span>

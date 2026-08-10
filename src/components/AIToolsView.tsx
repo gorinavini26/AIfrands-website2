@@ -38,7 +38,7 @@ export const AIToolsView: React.FC<AIToolsViewProps> = ({
   );
 
   return (
-    <div className="flex flex-col w-full text-slate-800 bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
+    <div className="flex flex-col w-full text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="max-w-7xl mx-auto w-full space-y-8">
         
         {/* HERO SECTION BANNER */}
@@ -58,7 +58,7 @@ export const AIToolsView: React.FC<AIToolsViewProps> = ({
           <div className="shrink-0">
             <button
               onClick={onOpenAIAssistant}
-              className="py-3.5 px-6 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm rounded-2xl shadow-lg border-b-4 border-amber-600 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-2 cursor-pointer"
+              className="btn-3d btn-3d-amber py-3.5 px-6 text-slate-950 font-extrabold text-sm flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-lg">auto_awesome</span>
               <span>Launch Embedded AI Tutor</span>

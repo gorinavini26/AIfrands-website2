@@ -58,7 +58,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
     : null;
 
   return (
-    <div className="flex flex-col w-full text-slate-800 bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
+    <div className="flex flex-col w-full text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="w-full max-w-7xl mx-auto space-y-8">
         
         {/* HERO BANNER */}
@@ -75,13 +75,13 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
             </p>
           </div>
 
-          <div className="shrink-0">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={onOpenAIAssistant}
-              className="py-3.5 px-6 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm rounded-2xl shadow-lg border-b-4 border-amber-600 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-2 cursor-pointer"
+              className="btn-3d btn-3d-amber py-3.5 px-6 text-slate-950 font-extrabold text-sm flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-lg">auto_awesome</span>
-              <span>Ask AI Tutor for Roadmap Guidance</span>
+              <span>Ask AI Tutor for Guidance</span>
             </button>
           </div>
         </div>
@@ -310,7 +310,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
 
           {/* Module Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {filteredModules.map((mod) => {
+            {filteredModules.map((mod, idx) => {
               const isExpanded = expandedModuleId === mod.id;
               const isCompleted = mod.status === 'completed';
               const isInProgress = mod.status === 'in_progress';
@@ -318,26 +318,38 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
               const totalTopicsCount = mod.topics.length;
               const allTopicsChecked = totalTopicsCount > 0 && completedTopicsCount === totalTopicsCount;
 
+              // Subject visual accent color rules
+              let borderAccent = 'border-t-6 border-t-indigo-500 shadow-indigo-500/10';
+              if (mod.title.toLowerCase().includes('math') || mod.category.toLowerCase().includes('elective')) {
+                borderAccent = 'border-t-6 border-t-purple-500 shadow-purple-500/10';
+              } else if (mod.title.toLowerCase().includes('structure') || mod.title.toLowerCase().includes('algorithm')) {
+                borderAccent = 'border-t-6 border-t-emerald-500 shadow-emerald-500/10';
+              } else if (mod.title.toLowerCase().includes('ai') || mod.title.toLowerCase().includes('intelligence') || mod.title.toLowerCase().includes('web')) {
+                borderAccent = 'border-t-6 border-t-amber-500 shadow-amber-500/10';
+              } else if (mod.category.toLowerCase().includes('project')) {
+                borderAccent = 'border-t-6 border-t-rose-500 shadow-rose-500/10';
+              }
+
               return (
                 <div
                   key={mod.id}
                   onClick={() => setActiveModalModule(mod)}
-                  className="bg-slate-50 hover:bg-white border-2 border-slate-200/90 hover:border-indigo-500 rounded-3xl p-5 sm:p-6 transition-all shadow-xs hover:shadow-md flex flex-col justify-between space-y-4 group cursor-pointer"
+                  className={`card-3d p-5 sm:p-6 transition-all flex flex-col justify-between space-y-4 group cursor-pointer ${borderAccent}`}
                 >
                   <div>
                     {/* Header Tags */}
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-extrabold text-[10px] uppercase">
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <span className="px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-200 font-extrabold text-[10px] uppercase tracking-wider">
                         {mod.semesters}
                       </span>
 
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase flex items-center gap-1 ${
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1 shadow-xs ${
                           isCompleted
-                            ? 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-indigo-600 text-white'
                             : isInProgress
-                            ? 'bg-indigo-100 text-indigo-800'
-                            : 'bg-slate-200 text-slate-600'
+                            ? 'bg-emerald-500 text-white animate-bounce-subtle'
+                            : 'bg-slate-700 text-slate-200'
                         }`}
                       >
                         {isCompleted ? 'Passed ✅' : isInProgress ? 'Active ⚡' : 'Locked 🔒'}
@@ -360,15 +372,15 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
                     </p>
 
                     {/* Progress Bar & Real-time Percentage */}
-                    <div className="mt-4 space-y-1">
+                    <div className="mt-4 space-y-1.5">
                       <div className="flex items-center justify-between text-xs font-extrabold">
                         <span className="text-slate-500">Topics Completion</span>
                         <span className="text-indigo-700">{mod.progress}% ({completedTopicsCount}/{totalTopicsCount})</span>
                       </div>
-                      <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-slate-200/90 h-3 rounded-full overflow-hidden border border-slate-300/50 shadow-inner">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
-                            isCompleted ? 'bg-emerald-500' : 'bg-indigo-600'
+                            isCompleted ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400'
                           }`}
                           style={{ width: `${mod.progress}%` }}
                         />
