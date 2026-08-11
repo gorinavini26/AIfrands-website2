@@ -36,24 +36,25 @@ export const ResourcesView: React.FC<ResourcesViewProps> = ({
     <div className="flex flex-col w-full text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="max-w-7xl mx-auto w-full space-y-8">
         
-        {/* HERO BANNER */}
-        <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-600/15 border-b-4 border-indigo-900 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400 text-slate-950 text-xs font-extrabold shadow-sm border-b-2 border-amber-600">
+        {/* HERO BANNER - FUCHSIA / VIOLET ACCENT */}
+        <div className="bg-gradient-to-r from-purple-800 via-fuchsia-900 to-slate-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-fuchsia-950/25 border-b-4 border-purple-950 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-80 h-80 bg-fuchsia-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="space-y-2 max-w-2xl relative z-10">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-fuchsia-400 text-slate-950 text-xs font-extrabold shadow-sm border-b-2 border-fuchsia-600">
               <span>📚</span> Academic Repository
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               NotebookLM Library & Course Notes
             </h1>
-            <p className="text-xs sm:text-sm text-indigo-100 font-medium leading-relaxed">
+            <p className="text-xs sm:text-sm text-fuchsia-100/90 font-medium leading-relaxed">
               Synthesized lecture notes, research paper summaries, and exam cheat-sheets.
             </p>
           </div>
 
-          <div className="shrink-0">
+          <div className="shrink-0 relative z-10">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="btn-3d btn-3d-amber py-3.5 px-6 text-slate-950 font-extrabold text-sm flex items-center gap-2"
+              className="btn-3d btn-3d-amber py-3.5 px-6 text-slate-950 font-extrabold text-sm flex items-center gap-2 cursor-pointer"
             >
               <span className="material-symbols-outlined text-lg">add</span>
               <span>Create Study Notebook</span>
@@ -63,7 +64,25 @@ export const ResourcesView: React.FC<ResourcesViewProps> = ({
 
         {/* Notebook Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {notebooks.map((nb) => (
+          {notebooks.length === 0 ? (
+            <div className="col-span-full bg-white border-2 border-dashed border-slate-300 rounded-3xl p-10 text-center space-y-4 shadow-xs">
+              <div className="w-14 h-14 bg-fuchsia-100 text-fuchsia-700 rounded-2xl flex items-center justify-center font-extrabold text-2xl mx-auto shadow-xs">
+                📚
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900">Your Notebook Library is Empty</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                Create your first AI-synthesized notebook to organize lecture slides, exam formula sheets, or research paper summaries in one place.
+              </p>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="btn-3d btn-3d-amber py-2.5 px-5 text-slate-950 text-xs font-extrabold inline-flex items-center gap-2 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-base">add</span>
+                <span>Create First Notebook</span>
+              </button>
+            </div>
+          ) : (
+            notebooks.map((nb) => (
             <div
               key={nb.id}
               onClick={() => onOpenNotebook(nb)}
@@ -102,7 +121,7 @@ export const ResourcesView: React.FC<ResourcesViewProps> = ({
                 </button>
               </div>
             </div>
-          ))}
+          )))}
         </div>
 
         {/* TOPIC CHECKLISTS & YOUTUBE TUTORIAL FINDER */}

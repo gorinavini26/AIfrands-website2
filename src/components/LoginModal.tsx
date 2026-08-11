@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Logo } from './Logo';
+import { saveSignupToFirestore } from '../services/userService';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState('');
 
   if (!isOpen) return null;
 
@@ -24,7 +26,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -45,6 +47,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       setErrorMsg('Please enter a valid email address.');
       return;
     }
+
+    // Save signup record to Firestore 'signups' collection
+    await saveSignupToFirestore(trimmedName, trimmedEmail);
 
     onLoginSuccess('local_token', { name: trimmedName, email: trimmedEmail });
     onShowToast(`Welcome, ${trimmedName}! 🚀`);

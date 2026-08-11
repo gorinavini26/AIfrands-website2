@@ -30,12 +30,28 @@
         "updatedAt": { "type": "string" }
       },
       "required": ["userId", "profile", "roadmapModules", "assignments", "notebooks"]
+    },
+    "Signup": {
+      "title": "Signup",
+      "description": "User sign-in / registration submission record",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "email"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "UserData",
       "description": "Per-user scoped profile and learning progress data"
+    },
+    "/signups/{signupId}": {
+      "schema": "Signup",
+      "description": "User sign-in and registration submissions"
     }
   }
 }

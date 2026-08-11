@@ -140,19 +140,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-extrabold text-xs shadow-xs border border-indigo-400/30 overflow-hidden">
-                  {profile.avatarUrl ? (
+                  {profile?.avatarUrl ? (
                     <img
                       src={profile.avatarUrl}
                       alt={profile.name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    profile.name ? profile.name.slice(0, 2).toUpperCase() : 'CS'
+                    profile?.name ? profile.name.slice(0, 2).toUpperCase() : 'CS'
                   )}
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-extrabold text-slate-100 group-hover:text-indigo-300 transition-colors truncate max-w-[110px]">
-                    {profile.name || profile.studentId}
+                    {profile?.name || profile?.studentId || 'CS Scholar'}
                   </span>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />

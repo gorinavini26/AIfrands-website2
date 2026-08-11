@@ -13,6 +13,8 @@ interface HeaderProps {
   onOpenNotifications: () => void;
   isAuthenticated: boolean;
   onLogout: () => void;
+  isDarkMode?: boolean;
+  onToggleDarkMode?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,6 +28,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenNotifications,
   isAuthenticated,
   onLogout,
+  isDarkMode = false,
+  onToggleDarkMode,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -83,10 +87,10 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Streak Pill & XP Badge */}
         <div
           className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 border-b-4 border-amber-300 rounded-2xl text-amber-900 font-extrabold text-xs shadow-xs cursor-default"
-          title={`${profile.streakDays} Day Active Streak!`}
+          title={`${profile?.streakDays || 0} Day Active Streak!`}
         >
           <span className="text-base animate-bounce-subtle">🔥</span>
-          <span>{profile.streakDays}d Streak</span>
+          <span>{profile?.streakDays || 0}d Streak</span>
         </div>
 
         {/* AI Tutor Primary Button with 3D press-down */}
@@ -104,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Notifications */}
         <button
           onClick={onOpenNotifications}
-          className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-2xl transition-colors relative cursor-pointer"
+          className="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-colors relative cursor-pointer"
           title="Notifications"
         >
           <span className="material-symbols-outlined text-[22px]">
@@ -114,6 +118,19 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full ring-2 ring-white" />
           )}
         </button>
+
+        {/* Site-Wide Dark Mode Toggle Button */}
+        {onToggleDarkMode && (
+          <button
+            onClick={onToggleDarkMode}
+            className="p-2 text-slate-600 dark:text-amber-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all cursor-pointer flex items-center justify-center"
+            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            <span className="material-symbols-outlined text-[22px]">
+              {isDarkMode ? 'light_mode' : 'dark_mode'}
+            </span>
+          </button>
+        )}
 
         <div className="h-6 w-px bg-slate-200/80 hidden sm:block" />
 
@@ -125,14 +142,14 @@ export const Header: React.FC<HeaderProps> = ({
               className="flex items-center gap-2 cursor-pointer hover:opacity-85 transition-opacity"
             >
               <div className="w-8 h-8 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center text-white font-extrabold text-xs shadow-xs border border-indigo-300 overflow-hidden">
-                {profile.avatarUrl ? (
+                {profile?.avatarUrl ? (
                   <img
                     src={profile.avatarUrl}
                     alt={profile.name}
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  profile.name ? profile.name.slice(0, 2).toUpperCase() : 'CS'
+                  profile?.name ? profile.name.slice(0, 2).toUpperCase() : 'CS'
                 )}
               </div>
             </div>

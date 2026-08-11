@@ -13,6 +13,7 @@ import { LanguagesView } from './components/LanguagesView';
 import { ResourcesView } from './components/ResourcesView';
 import { SettingsView } from './components/SettingsView';
 import { LoginModal } from './components/LoginModal';
+import { OnboardingModal } from './components/OnboardingModal';
 import { ContactModal } from './components/ContactModal';
 import { AssignmentModal } from './components/AssignmentModal';
 import { NotebookModal } from './components/NotebookModal';
@@ -43,6 +44,27 @@ export function App() {
   const [selectedNotebook, setSelectedNotebook] = useState<Notebook | null>(null);
   const [showAIAssistant, setShowAIAssistant] = useState<boolean>(false);
   const [aiAssistantCode, setAIAssistantCode] = useState<string | undefined>(undefined);
+
+  // Site-wide Dark Mode State
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('aifrands_dark_mode') === 'true';
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark');
+      document.documentElement.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('aifrands_dark_mode', isDarkMode ? 'true' : 'false');
+  }, [isDarkMode]);
+
+  const handleToggleDarkMode = () => {
+    setIsDarkMode((prev) => !prev);
+    setToastMessage(isDarkMode ? '☀️ Switched to Light Mode' : '🌙 Switched to Dark Mode');
+  };
 
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -91,12 +113,12 @@ export function App() {
 
   // Apply high density theme class to body
   useEffect(() => {
-    if (profile.highDensityTheme) {
+    if (profile?.highDensityTheme) {
       document.body.classList.add('high-density');
     } else {
       document.body.classList.remove('high-density');
     }
-  }, [profile.highDensityTheme]);
+  }, [profile?.highDensityTheme]);
 
   const handleLogout = async () => {
     try {
@@ -342,6 +364,8 @@ export function App() {
         }}
         isAuthenticated={isAuthenticated}
         onLogout={handleLogout}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={handleToggleDarkMode}
       />
 
       {/* Main Content Area */}
@@ -413,11 +437,25 @@ export function App() {
             profile={profile}
             onUpdateProfile={handleUpdateProfile}
             onShowToast={(msg) => setToastMessage(msg)}
+            isDarkMode={isDarkMode}
+            onToggleDarkMode={handleToggleDarkMode}
           />
         )}
       </main>
 
       {/* Modals & Overlays */}
+      <OnboardingModal
+        isOpen={isAuthenticated && !profile?.onboardingCompleted}
+        profile={profile}
+        onCompleteOnboarding={(updatedProfile, defaultSem) => {
+          handleUpdateProfile(updatedProfile);
+          if (defaultSem) {
+            setActiveTab('roadmap');
+          }
+        }}
+        onShowToast={(msg) => setToastMessage(msg)}
+      />
+
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}

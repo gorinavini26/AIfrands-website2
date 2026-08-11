@@ -11,6 +11,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Signups collection
+    match /signups/{signupId} {
+      allow create, read, write: if true;
+    }
+
     // Test connection document
     match /test/{docId} {
       allow read, write: if true;

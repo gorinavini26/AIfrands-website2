@@ -1,7 +1,25 @@
-import { doc, getDoc, setDoc, getDocFromServer } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getDocFromServer, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { UserProfile, RoadmapModule, Assignment, Notebook } from '../types';
 import { initialRoadmapModules, initialAssignments, initialNotebooks } from '../data/mockData';
+
+/**
+ * Saves sign-in/registration details (name, email, timestamp) to the 'signups' Firestore collection.
+ */
+export async function saveSignupToFirestore(name: string, email: string): Promise<void> {
+  try {
+    const signupsCollection = collection(db, 'signups');
+    await addDoc(signupsCollection, {
+      name: name.trim(),
+      email: email.trim(),
+      timestamp: serverTimestamp(),
+      createdAt: new Date().toISOString(),
+    });
+    console.info(`Saved signup record to Firestore signups collection for ${email}`);
+  } catch (err) {
+    console.error('Failed to save signup record to Firestore signups collection:', err);
+  }
+}
 
 export enum OperationType {
   CREATE = 'create',
@@ -141,15 +159,22 @@ export async function getUserData(uid: string, name?: string, email?: string): P
     const userDocSnap = await getDoc(userDocRef);
 
     if (userDocSnap.exists()) {
-      const existingData = userDocSnap.data() as UserData;
-      // Ensure name and email are updated if provided from Firebase auth
-      if (name && existingData.profile) {
-        existingData.profile.name = name;
-      }
-      if (email && existingData.profile) {
-        existingData.profile.email = email;
-      }
-      return existingData;
+      const existingData = userDocSnap.data() as Partial<UserData>;
+      const fallback = createZeroProgressUserData(uid, name, email);
+      const mergedProfile: UserProfile = {
+        ...fallback.profile,
+        ...(existingData.profile || {}),
+        name: name || existingData.profile?.name || fallback.profile.name,
+        email: email || existingData.profile?.email || fallback.profile.email,
+      };
+      return {
+        userId: uid,
+        profile: mergedProfile,
+        roadmapModules: existingData.roadmapModules || fallback.roadmapModules,
+        assignments: existingData.assignments || fallback.assignments,
+        notebooks: existingData.notebooks || fallback.notebooks,
+        updatedAt: existingData.updatedAt || new Date().toISOString(),
+      };
     } else {
       // New user - create zero progress data
       const newZeroData = createZeroProgressUserData(uid, name, email);

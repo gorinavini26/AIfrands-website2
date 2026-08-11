@@ -3,6 +3,8 @@ export interface UserProfile {
   name: string;
   studentId: string;
   year: string;
+  currentSemester?: number;
+  onboardingCompleted?: boolean;
   email: string;
   githubUrl: string;
   bio: string;

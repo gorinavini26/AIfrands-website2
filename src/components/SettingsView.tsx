@@ -5,6 +5,8 @@ interface SettingsViewProps {
   profile: UserProfile;
   onUpdateProfile: (updated: Partial<UserProfile>) => void;
   onShowToast: (msg: string) => void;
+  isDarkMode?: boolean;
+  onToggleDarkMode?: () => void;
 }
 
 const PRESET_AVATARS = [
@@ -22,22 +24,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   profile,
   onUpdateProfile,
   onShowToast,
+  isDarkMode = false,
+  onToggleDarkMode,
 }) => {
-  const [name, setName] = useState(profile.name);
-  const [email, setEmail] = useState(profile.email);
-  const [githubUrl, setGithubUrl] = useState(profile.githubUrl || '');
-  const [bio, setBio] = useState(profile.bio || '');
-  const [year, setYear] = useState(profile.year || 'Year 2');
-  const [editorFontSize, setEditorFontSize] = useState(profile.editorFontSize || 14);
-  const [highDensityTheme, setHighDensityTheme] = useState(!!profile.highDensityTheme);
+  const [name, setName] = useState(profile?.name || '');
+  const [email, setEmail] = useState(profile?.email || '');
+  const [githubUrl, setGithubUrl] = useState(profile?.githubUrl || '');
+  const [bio, setBio] = useState(profile?.bio || '');
+  const [year, setYear] = useState(profile?.year || 'Year 2');
+  const [editorFontSize, setEditorFontSize] = useState(profile?.editorFontSize || 14);
+  const [highDensityTheme, setHighDensityTheme] = useState(!!profile?.highDensityTheme);
 
-  const [primaryLangs, setPrimaryLangs] = useState<string[]>(profile.primaryLanguages || []);
-  const [toolsIdes, setToolsIdes] = useState<string[]>(profile.toolsAndIdes || []);
+  const [primaryLangs, setPrimaryLangs] = useState<string[]>(profile?.primaryLanguages || []);
+  const [toolsIdes, setToolsIdes] = useState<string[]>(profile?.toolsAndIdes || []);
   const [newLangInput, setNewLangInput] = useState('');
   const [newToolInput, setNewToolInput] = useState('');
 
   const [notifications, setNotifications] = useState(
-    profile.notifications || {
+    profile?.notifications || {
       assignmentDeadlines: true,
       portalUpdates: false,
       communityMessages: true,
@@ -45,7 +49,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   );
 
   // Avatar states & file ref
-  const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl || PRESET_AVATARS[0].url);
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatarUrl || PRESET_AVATARS[0].url);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -402,10 +406,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {/* High Density Theme Toggle */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-bold text-slate-900">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white">
                       High Density Theme
                     </p>
-                    <p className="text-[10px] font-mono text-slate-500">
+                    <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
                       Compact spacing and high-contrast typography
                     </p>
                   </div>
@@ -413,7 +417,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     type="button"
                     onClick={handleToggleHighDensity}
                     className={`w-11 h-6 rounded-full relative transition-colors cursor-pointer ${
-                      highDensityTheme ? 'bg-indigo-600' : 'bg-slate-300'
+                      highDensityTheme ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'
                     }`}
                   >
                     <div
@@ -423,6 +427,33 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     />
                   </button>
                 </div>
+
+                {/* Site-wide Dark Mode Toggle */}
+                {onToggleDarkMode && (
+                  <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-4">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                        <span>{isDarkMode ? '🌙' : '☀️'}</span> Site-Wide Dark Mode
+                      </p>
+                      <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                        Extend sleek dark theme to all views and components
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={onToggleDarkMode}
+                      className={`w-11 h-6 rounded-full relative transition-colors cursor-pointer ${
+                        isDarkMode ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'
+                      }`}
+                    >
+                      <div
+                        className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-md transition-transform ${
+                          isDarkMode ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                )}
 
                 {/* Editor Font Size Slider */}
                 <div>

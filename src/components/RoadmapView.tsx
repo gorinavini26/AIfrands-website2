@@ -61,30 +61,58 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
     <div className="flex flex-col w-full text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="w-full max-w-7xl mx-auto space-y-8">
         
-        {/* HERO BANNER */}
-        <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-600/15 border-b-4 border-indigo-900 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400 text-slate-950 text-xs font-extrabold shadow-sm border-b-2 border-amber-600">
-              <span>🗺️</span> 4-Year Academic Path
+        {/* HERO BANNER - EMERALD / TEAL ACCENT */}
+        <div className="bg-gradient-to-r from-teal-800 via-emerald-800 to-slate-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-teal-900/25 border-b-4 border-teal-950 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="space-y-2 max-w-2xl relative z-10">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-400 text-slate-950 text-xs font-extrabold shadow-sm border-b-2 border-emerald-600">
+              <span>🗺️</span> 4-Year BTech Curriculum Path
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Degree Progression & Semester Milestones
             </h1>
-            <p className="text-xs sm:text-sm text-indigo-100 font-medium leading-relaxed">
-              Track your 8-semester BTech curriculum roadmap with dynamic topic checklists, completion status, and curated learning videos.
+            <p className="text-xs sm:text-sm text-emerald-100/90 font-medium leading-relaxed">
+              Track your 8-semester CS curriculum roadmap with dynamic topic checklists, completion status, and curated learning videos.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 relative z-10">
             <button
               onClick={onOpenAIAssistant}
-              className="btn-3d btn-3d-amber py-3.5 px-6 text-slate-950 font-extrabold text-sm flex items-center gap-2"
+              className="btn-3d btn-3d-amber py-3.5 px-6 text-slate-950 font-extrabold text-sm flex items-center gap-2 cursor-pointer"
             >
               <span className="material-symbols-outlined text-lg">auto_awesome</span>
               <span>Ask AI Tutor for Guidance</span>
             </button>
           </div>
         </div>
+
+        {/* YEAR 1 & 2 ROADMAP PROMPT CARD */}
+        {(selectedYear === 1 || selectedYear === 2 || selectedYear === 'all') && (
+          <div className="bg-gradient-to-r from-amber-500/10 via-indigo-600/10 to-purple-600/10 border-2 border-amber-400/80 rounded-3xl p-5 sm:p-6 shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800 text-[11px] font-black uppercase tracking-wider">
+                  🧭 Not sure where to start on this roadmap?
+                </span>
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+                  Focus on your Active Semester modules first!
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                  We recommend starting with <strong>Intro to CS / C++</strong> or <strong>Data Structures</strong>. Click any module card to check off completed topic units!
+                </p>
+              </div>
+
+              <button
+                onClick={onOpenAIAssistant}
+                className="btn-3d btn-3d-amber px-4 py-2.5 text-slate-950 text-xs font-extrabold shrink-0 flex items-center gap-2 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-base">auto_awesome</span>
+                <span>Get Step-by-Step AI Advice</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* DEGREE STAGE CIRCULAR PROCESS & MILESTONES */}
         <div className="bg-white border-2 border-slate-200/90 rounded-3xl p-6 shadow-xs space-y-6">
@@ -363,9 +391,15 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
                       </span>
                     </h3>
                     
-                    <p className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider mt-0.5">
-                      Year {mod.year} • {mod.category}
-                    </p>
+                    <div className="flex items-center justify-between gap-2 mt-1 flex-wrap">
+                      <p className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider">
+                        Year {mod.year} • {mod.category}
+                      </p>
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800/80 px-2 py-0.5 rounded-lg shadow-2xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                        <span>🔥 {105 + ((idx * 43) % 95)} working on this module</span>
+                      </span>
+                    </div>
 
                     <p className="text-xs text-slate-600 mt-2 font-medium leading-relaxed">
                       {mod.description}

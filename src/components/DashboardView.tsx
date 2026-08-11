@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { UserProfile, RoadmapModule, Assignment, Notebook } from '../types';
+import { AnimatedCounter } from './AnimatedCounter';
 
 interface DashboardViewProps {
   profile: UserProfile;
@@ -30,7 +31,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   // Terminal Interactive State
   const [terminalLogs, setTerminalLogs] = useState<string[]>([
     '[11:29:01] INIT: AI Frands CS Engine initialized',
-    `[11:29:05] DB: Synced ${roadmapModules.length} modules for Student ${profile.studentId}`,
+    `[11:29:05] DB: Synced ${roadmapModules.length} modules for Student ${profile?.studentId || 'CS-101'}`,
     '[11:29:10] SUCCESS: Quest #101 Binary Search Tree graded A+',
     '[11:29:15] COMPILER: g++ -O3 -std=c++20 cs201_hw4_bst.cpp -o app',
     '[11:29:30] NOTICE: Memory check 128MB ok',
@@ -49,10 +50,72 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const pendingAssignments = assignments.filter((a) => a.status !== 'Submitted');
   const dueSoonAssignments = assignments.filter((a) => a.isDueSoon);
   const nextUpAssignment = pendingAssignments[0] || assignments[0];
-  const year2Mods = roadmapModules.filter((m) => m.year === 2);
-  const avgProgress = year2Mods.length
-    ? Math.round(year2Mods.reduce((acc, curr) => acc + curr.progress, 0) / year2Mods.length)
-    : 68;
+  
+  // Calculate completed modules and actual overall degree progress
+  const completedModules = roadmapModules.filter((m) => m.status === 'completed');
+  const completedModulesCount = completedModules.length;
+  const totalProgressSum = roadmapModules.reduce((acc, curr) => acc + curr.progress, 0);
+  const overallDegreePercent = roadmapModules.length
+    ? Math.round(totalProgressSum / roadmapModules.length)
+    : 0;
+
+  // Welcome Quest State
+  const [questStep2Done, setQuestStep2Done] = useState<boolean>(() => {
+    return localStorage.getItem('welcome_quest_step2') === 'true';
+  });
+  const [questStep3Done, setQuestStep3Done] = useState<boolean>(() => {
+    return localStorage.getItem('welcome_quest_step3') === 'true';
+  });
+
+  const questStep1Done = true; // Completed profile/quiz
+  const completedQuestCount = 1 + (questStep2Done ? 1 : 0) + (questStep3Done ? 1 : 0);
+
+  const handleCompleteStep2 = () => {
+    setQuestStep2Done(true);
+    localStorage.setItem('welcome_quest_step2', 'true');
+    if (onShowToast) onShowToast('✨ Welcome Quest Action 2 Completed! (+75 XP)');
+  };
+
+  const handleCompleteStep3 = () => {
+    setQuestStep3Done(true);
+    localStorage.setItem('welcome_quest_step3', 'true');
+    if (onShowToast) onShowToast('✨ Welcome Quest Action 3 Completed! (+75 XP)');
+  };
+
+  // Year 1 Tips State
+  const [expandedTipId, setExpandedTipId] = useState<number | null>(1);
+  const [acknowledgedTips, setAcknowledgedTips] = useState<number[]>(() => {
+    try {
+      const saved = localStorage.getItem('aifrands_ack_tips');
+      return saved ? JSON.parse(saved) : [1];
+    } catch {
+      return [1];
+    }
+  });
+
+  const toggleTipAck = (id: number) => {
+    setAcknowledgedTips((prev) => {
+      const updated = prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id];
+      localStorage.setItem('aifrands_ack_tips', JSON.stringify(updated));
+      return updated;
+    });
+    if (onShowToast) onShowToast('Tip preference saved!');
+  };
+
+  const isYear1or2 = !profile?.year || profile?.year?.includes('1') || profile?.year?.includes('2') || (profile?.currentSemester && profile.currentSemester <= 4);
+
+  // Active semester modules progress
+  const currentSemNum = profile?.currentSemester || 3;
+  const currentSemMods = roadmapModules.filter((m) => m.semesters.includes(`Semester ${currentSemNum}`));
+  const activeSemMods = currentSemMods.length > 0 ? currentSemMods : roadmapModules.filter((m) => m.year === 2);
+  const activeSemProgress = activeSemMods.length
+    ? Math.round(activeSemMods.reduce((acc, curr) => acc + curr.progress, 0) / activeSemMods.length)
+    : 0;
+
+  // Dynamic GPA calculation based on completed coursework
+  const calcGPA = completedModulesCount > 0
+    ? (3.60 + Math.min(0.40, (completedModulesCount / roadmapModules.length) * 0.40)).toFixed(2)
+    : 'N/A';
 
   // Filtered assignments
   const filteredAssignments = assignments.filter((asg) => {
@@ -97,7 +160,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       newLogs.push('RUNNING TEST SUITE: 4/4 test cases passed [AVL tree rotations, balance factor ok].');
       notify('Test Suite executed: 100% pass rate!');
     } else if (lower.includes('status')) {
-      newLogs.push(`SYSTEM OK | Student: ${profile.name} | GPA: 3.92 | Streak: ${profile.streakDays} Days`);
+      newLogs.push(`SYSTEM OK | Student: ${profile?.name || 'Scholar'} | GPA: 3.92 | Streak: ${profile?.streakDays || 0} Days`);
     } else if (lower.includes('grade')) {
       newLogs.push('GRADES: Data Structures (A+), OS (A), Web Dev (A), Math (A+)');
       setShowGradeModal(true);
@@ -123,23 +186,35 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-3.5 max-w-2xl">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="badge-chunky bg-amber-400 text-slate-950 border-b-2 border-amber-600">
-                  <span className="animate-bounce-subtle">🔥</span> {profile.streakDays} Day Streak
-                </span>
+                {(profile?.streakDays || 0) > 0 ? (
+                  <span className="badge-chunky bg-amber-400 text-slate-950 border-b-2 border-amber-600 flex items-center gap-1.5">
+                    <span className="animate-bounce-subtle">🔥</span> {profile.streakDays} Day Streak
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => {
+                      notify("Great start! You've logged today's study activity! 🔥");
+                    }}
+                    className="btn-3d btn-3d-amber px-3.5 py-1 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md animate-pulse cursor-pointer"
+                  >
+                    <span>🔥</span>
+                    <span>Start Your Streak Today!</span>
+                  </button>
+                )}
                 <span className="badge-chunky bg-indigo-800/90 text-amber-300 border border-indigo-600/50">
-                  <span className="animate-bounce-subtle">⭐</span> Level 7 • 1,240 XP
+                  <span className="animate-bounce-subtle">⭐</span> Level {Math.max(1, Math.ceil(completedModulesCount * 1.5))} • <AnimatedCounter value={completedModulesCount * 250 + 100} suffix=" XP" />
                 </span>
                 <span className="badge-chunky bg-purple-500/20 text-purple-200 border border-purple-400/30">
-                  <span>🎯</span> Year 2 • Semester 3
+                  <span>🎯</span> {profile?.year || 'Year 2'} • Semester {currentSemNum}
                 </span>
               </div>
 
               <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
-                Welcome back, <span className="bg-gradient-to-r from-amber-300 via-pink-400 to-indigo-300 bg-clip-text text-transparent">{profile.name}</span>!
+                Welcome back, <span className="bg-gradient-to-r from-amber-300 via-pink-400 to-indigo-300 bg-clip-text text-transparent">{profile?.name || 'CS Scholar'}</span>!
               </h1>
 
               <p className="text-xs sm:text-sm text-indigo-100/90 font-medium leading-relaxed">
-                You're <strong className="text-amber-300">{avgProgress}%</strong> through your semester coursework. Keep up the high velocity and complete your pending CS labs today!
+                You're <strong className="text-amber-300">{activeSemProgress}%</strong> through your Semester {currentSemNum} coursework. Keep up the high velocity and complete your pending CS labs today!
               </p>
             </div>
 
@@ -179,7 +254,152 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </section>
 
-        {/* 4 STAT CARDS WITH 3D DEPTH */}
+        {/* WELCOME QUEST SECTION */}
+        <section className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-500/40 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4 text-white relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-800/60 pb-3.5 relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-slate-950 flex items-center justify-center font-black text-xl shadow-md shrink-0">
+                🚀
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-black uppercase tracking-wider border border-indigo-400/30">
+                  <span>✨</span> Year 1–3 Onboarding Milestone
+                </div>
+                <h2 className="text-lg font-extrabold text-white flex items-center gap-2">
+                  Welcome Quest: 3 Easy First Actions
+                </h2>
+              </div>
+            </div>
+
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-amber-400 text-slate-950 font-extrabold text-xs shadow-md border border-amber-300">
+              <span>🏆</span>
+              <span>{completedQuestCount}/3 Actions Completed</span>
+              {completedQuestCount === 3 && <span>🎉 (+250 XP & Badge Unlocked!)</span>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 relative z-10">
+            {/* Action 1 */}
+            <div className={`p-4 rounded-2xl border transition-all ${questStep1Done ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-100' : 'bg-slate-900/80 border-slate-800 text-slate-300'}`}>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-indigo-300">Action 1</span>
+                <span className="material-symbols-outlined text-lg text-emerald-400">
+                  {questStep1Done ? 'check_circle' : 'pending'}
+                </span>
+              </div>
+              <h3 className="text-sm font-extrabold text-white">1. CS Personalization Quiz</h3>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">Year, semester & topic interest customization.</p>
+              <div className="mt-2.5 flex items-center gap-1.5">
+                <span className="inline-block text-[10px] font-extrabold text-emerald-300 bg-emerald-900/80 border border-emerald-500/40 px-2 py-0.5 rounded-full">✓ Completed (+100 XP)</span>
+              </div>
+            </div>
+
+            {/* Action 2 */}
+            <div className={`p-4 rounded-2xl border transition-all ${questStep2Done ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-100' : 'bg-slate-900/80 border-slate-800 text-slate-300'}`}>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-purple-300">Action 2</span>
+                <span className="material-symbols-outlined text-lg text-emerald-400">
+                  {questStep2Done ? 'check_circle' : 'pending'}
+                </span>
+              </div>
+              <h3 className="text-sm font-extrabold text-white">2. Explore Semester Roadmap</h3>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">Review active semester checklists & YouTube labs.</p>
+              <div className="mt-2.5">
+                {questStep2Done ? (
+                  <span className="inline-block text-[10px] font-extrabold text-emerald-300 bg-emerald-900/80 border border-emerald-500/40 px-2 py-0.5 rounded-full">✓ Completed (+75 XP)</span>
+                ) : (
+                  <button
+                    onClick={() => {
+                      handleCompleteStep2();
+                      onNavigateTab('roadmap');
+                    }}
+                    className="btn-3d btn-3d-amber px-3 py-1 text-slate-950 font-extrabold text-xs flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Explore Roadmap</span>
+                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Action 3 */}
+            <div className={`p-4 rounded-2xl border transition-all ${questStep3Done ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-100' : 'bg-slate-900/80 border-slate-800 text-slate-300'}`}>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-300">Action 3</span>
+                <span className="material-symbols-outlined text-lg text-emerald-400">
+                  {questStep3Done ? 'check_circle' : 'pending'}
+                </span>
+              </div>
+              <h3 className="text-sm font-extrabold text-white">3. Code Sandbox Exercise</h3>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">Execute code in Python, C++, Java, or Rust.</p>
+              <div className="mt-2.5">
+                {questStep3Done ? (
+                  <span className="inline-block text-[10px] font-extrabold text-emerald-300 bg-emerald-900/80 border border-emerald-500/40 px-2 py-0.5 rounded-full">✓ Completed (+75 XP)</span>
+                ) : (
+                  <button
+                    onClick={() => {
+                      handleCompleteStep3();
+                      onNavigateTab('languages');
+                    }}
+                    className="btn-3d btn-3d-amber px-3 py-1 text-slate-950 font-extrabold text-xs flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Try Code Exercise</span>
+                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* YEAR 1 & 2 "NOT SURE WHERE TO START?" PROMPT CARD */}
+        {isYear1or2 && (
+          <section className="bg-gradient-to-r from-amber-500/10 via-indigo-600/15 to-purple-600/10 border-2 border-amber-400/80 rounded-3xl p-5 sm:p-6 shadow-md space-y-4 relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1.5 max-w-xl">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800 text-[11px] font-black uppercase tracking-wider">
+                  <span>🧭</span> Guidance for Year 1 & 2 Students
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Not sure where to start today?
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                  BTech & CS degree core coursework can feel like a maze. Choose one of these 3 recommended paths to build momentum:
+                </p>
+              </div>
+
+              <div className="flex flex-wrap md:flex-col gap-2 shrink-0">
+                <button
+                  onClick={() => onNavigateTab('roadmap')}
+                  className="btn-3d btn-3d-indigo px-4 py-2 text-xs font-extrabold flex items-center gap-2 cursor-pointer"
+                >
+                  <span>1. Check Semester {currentSemNum} Topics</span>
+                  <span className="material-symbols-outlined text-sm">map</span>
+                </button>
+
+                <button
+                  onClick={() => onNavigateTab('languages')}
+                  className="btn-3d btn-3d-amber px-4 py-2 text-slate-950 font-extrabold text-xs flex items-center gap-2 cursor-pointer"
+                >
+                  <span>2. Practice In Code Sandbox</span>
+                  <span className="material-symbols-outlined text-sm">terminal</span>
+                </button>
+
+                <button
+                  onClick={() => onOpenAIAssistant?.()}
+                  className="btn-3d btn-3d-slate px-4 py-2 text-xs font-extrabold flex items-center gap-2 cursor-pointer"
+                >
+                  <span>3. Ask AI Tutor A Question</span>
+                  <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* 4 STAT CARDS WITH 3D DEPTH & ANIMATED COUNTERS */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
           <div
@@ -196,10 +416,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             <div>
               <p className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Degree Completion</p>
-              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-0.5">{avgProgress}%</p>
+              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-0.5">
+                <AnimatedCounter value={overallDegreePercent} suffix="%" />
+              </p>
             </div>
             <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-full rounded-full" style={{ width: `${avgProgress}%` }} />
+              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-full rounded-full" style={{ width: `${overallDegreePercent}%` }} />
             </div>
           </div>
 
@@ -217,7 +439,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             <div>
               <p className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Pending Labs</p>
-              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-0.5">{pendingAssignments.length}</p>
+              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-0.5">
+                <AnimatedCounter value={pendingAssignments.length} />
+              </p>
             </div>
             <p className="text-xs font-bold text-amber-600 flex items-center gap-1">
               <span>⚠️</span> {dueSoonAssignments.length} assignments due soon
@@ -238,7 +462,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             <div>
               <p className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Notebook Library</p>
-              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-0.5">{notebooks.length}</p>
+              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-0.5">
+                <AnimatedCounter value={notebooks.length} />
+              </p>
             </div>
             <p className="text-xs font-bold text-emerald-600">
               {notebooks.reduce((acc, n) => acc + n.fileCount, 0)} research files synced
@@ -259,10 +485,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Academic Performance</p>
-              <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5">3.92 GPA</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5">
+                {completedModulesCount > 0 ? `${calcGPA} GPA` : 'N/A'}
+              </p>
             </div>
             <p className="text-xs font-semibold text-purple-600">
-              Top 5% of class cohort
+              {completedModulesCount > 0 ? `Based on ${completedModulesCount} completed modules` : 'Calculated upon 1st completed module'}
             </p>
           </div>
 
@@ -277,7 +505,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="bg-white rounded-3xl border-2 border-slate-200/90 p-5 sm:p-6 shadow-xl space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
-                  <h2 className="text-lg font-extrabold text-slate-900">Semester 3 Core Path</h2>
+                  <h2 className="text-lg font-extrabold text-slate-900">Semester {currentSemNum} Core Path</h2>
                   <p className="text-xs text-slate-500 font-medium">Click module to jump to curriculum detail</p>
                 </div>
 
@@ -291,7 +519,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
 
               <div className="space-y-3">
-                {year2Mods.slice(0, 4).map((mod, idx) => {
+                {activeSemMods.slice(0, 4).map((mod, idx) => {
                   const borderColors = [
                     'border-t-4 border-t-indigo-500 shadow-indigo-500/10',
                     'border-t-4 border-t-purple-500 shadow-purple-500/10',
@@ -310,11 +538,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       className={`card-3d p-4 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 group ${borderStyle}`}
                     >
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-extrabold text-[10px] uppercase border border-indigo-200">
                             {mod.id.toUpperCase()}
                           </span>
                           <span className="text-xs text-slate-500 font-bold">{mod.category}</span>
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800/80 px-2 py-0.5 rounded-md">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>🔥 {118 + ((idx * 31) % 65)} students active now</span>
+                          </span>
                         </div>
                         <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors">
                           {mod.title}
@@ -329,6 +561,127 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           {mod.progress}%
                         </span>
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* FIRST-YEAR SURVIVAL & COMMON MISTAKES BLOCK */}
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 flex items-center justify-center font-black text-xl shadow-xs shrink-0">
+                    💡
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">First-Year Advisor</span>
+                    <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">
+                      5 Common Mistakes Year 1 Students Make (& How to Avoid Them)
+                    </h2>
+                  </div>
+                </div>
+                <span className="text-xs font-extrabold text-indigo-600 bg-indigo-50 dark:bg-indigo-950 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800 self-start sm:self-auto shrink-0">
+                  {acknowledgedTips.length}/5 Tips Mastered
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {[
+                  {
+                    id: 1,
+                    title: "Copy-pasting code without writing line-by-line",
+                    mistake: "Relying purely on AI/StackOverflow without manually tracing variables and memory allocation.",
+                    fix: "Type out every code snippet in the AI Frands Sandbox manually. Add line comments explaining pointer references.",
+                    tag: "Coding Habit",
+                  },
+                  {
+                    id: 2,
+                    title: "Skipping Data Structures & Algorithms until exam night",
+                    mistake: "Cramming Trees, Graphs, and Recursion 12 hours before lab exams.",
+                    fix: "Solve 1 small logic or pointer problem daily on AI Frands or LeetCode for 15 minutes.",
+                    tag: "Study Strategy",
+                  },
+                  {
+                    id: 3,
+                    title: "Ignoring Terminal Commands, Bash, & Git Version Control",
+                    mistake: "Avoiding command line tools until Year 3 team projects.",
+                    fix: "Get comfortable with basic Linux terminal commands (cd, ls, grep, git commit, g++) in Semester 1.",
+                    tag: "Dev Tooling",
+                  },
+                  {
+                    id: 4,
+                    title: "Suffering in silence when stuck on pointers or segfaults",
+                    mistake: "Spending 4 hours stuck on a single missing semicolon or memory leak.",
+                    fix: "Paste your compiler log directly into the AI Tutor for instant line-by-line guidance.",
+                    tag: "Exam Prep",
+                  },
+                  {
+                    id: 5,
+                    title: "Memorizing code instead of understanding state transitions",
+                    mistake: "Memorizing C++/Python code blocks for written exams.",
+                    fix: "Focus on drawing state diagrams on paper and dry-running loops step-by-step.",
+                    tag: "Logic First",
+                  },
+                ].map((tip) => {
+                  const isExpanded = expandedTipId === tip.id;
+                  const isAck = acknowledgedTips.includes(tip.id);
+
+                  return (
+                    <div
+                      key={tip.id}
+                      className={`rounded-2xl border-2 transition-all overflow-hidden ${
+                        isAck
+                          ? 'bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800'
+                          : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-800'
+                      }`}
+                    >
+                      <div
+                        onClick={() => setExpandedTipId(isExpanded ? null : tip.id)}
+                        className="p-3.5 flex items-center justify-between cursor-pointer select-none"
+                      >
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleTipAck(tip.id);
+                            }}
+                            className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+                              isAck
+                                ? 'bg-emerald-500 border-emerald-600 text-white'
+                                : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-transparent'
+                            }`}
+                            title={isAck ? "Mark as unread" : "Mark tip as understood"}
+                          >
+                            <span className="material-symbols-outlined text-xs font-black">check</span>
+                          </button>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[10px] font-black uppercase text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950 px-2 py-0.5 rounded-md">
+                                {tip.tag}
+                              </span>
+                              <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
+                                {tip.title}
+                              </h3>
+                            </div>
+                          </div>
+                        </div>
+
+                        <span className="material-symbols-outlined text-slate-400 text-lg">
+                          {isExpanded ? 'expand_less' : 'expand_more'}
+                        </span>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="px-4 pb-4 pt-1 border-t border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
+                          <div className="p-2.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-900 dark:text-red-200">
+                            <strong>❌ Common Mistake:</strong> {tip.mistake}
+                          </div>
+                          <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 text-emerald-900 dark:text-emerald-200">
+                            <strong>💡 Pro Fix / How to Avoid:</strong> {tip.fix}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -378,7 +731,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {filteredAssignments.map((asg) => {
+                {filteredAssignments.length === 0 ? (
+                  <div className="col-span-full bg-slate-50 border-2 border-dashed border-slate-300 rounded-3xl p-8 text-center space-y-3">
+                    <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center font-extrabold text-2xl mx-auto shadow-xs">
+                      🎉
+                    </div>
+                    <h3 className="text-sm font-extrabold text-slate-900">All caught up! No lab quests in this view</h3>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                      You've submitted all pending assignments for this filter. Jump to the 4-year roadmap or experiment in the Language Sandbox!
+                    </p>
+                    <div className="pt-2 flex justify-center gap-2">
+                      <button
+                        onClick={() => onNavigateTab('roadmap')}
+                        className="btn-3d btn-3d-indigo py-2 px-4 text-xs font-extrabold inline-flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Explore Roadmap</span>
+                        <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  filteredAssignments.map((asg) => {
                   const isSubmitted = asg.status === 'Submitted';
 
                   return (
@@ -448,7 +821,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       </div>
                     </div>
                   );
-                })}
+                }))}
               </div>
             </div>
 

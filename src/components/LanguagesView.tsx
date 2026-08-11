@@ -39,16 +39,17 @@ export const LanguagesView: React.FC<LanguagesViewProps> = ({
     <div className="flex flex-col w-full text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="max-w-7xl mx-auto w-full space-y-8">
         
-        {/* HERO BANNER */}
-        <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-600/15 border-b-4 border-indigo-900 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400 text-slate-950 text-xs font-extrabold shadow-sm border-b-2 border-amber-600">
+        {/* HERO BANNER - ELECTRIC BLUE / CYAN ACCENT */}
+        <div className="bg-gradient-to-r from-blue-700 via-indigo-800 to-slate-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-blue-950/25 border-b-4 border-blue-950 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="space-y-2 max-w-2xl relative z-10">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-400 text-slate-950 text-xs font-extrabold shadow-sm border-b-2 border-cyan-600">
               <span>💻</span> Interactive Stack Sandbox
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Language Paradigms & Code Runner
             </h1>
-            <p className="text-xs sm:text-sm text-indigo-100 font-medium leading-relaxed">
+            <p className="text-xs sm:text-sm text-cyan-100/90 font-medium leading-relaxed">
               Master Python, C++, Java, and Rust paradigms with live execution and instant AI feedback.
             </p>
           </div>

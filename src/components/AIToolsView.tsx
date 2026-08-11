@@ -41,24 +41,25 @@ export const AIToolsView: React.FC<AIToolsViewProps> = ({
     <div className="flex flex-col w-full text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="max-w-7xl mx-auto w-full space-y-8">
         
-        {/* HERO SECTION BANNER */}
-        <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-600/15 border-b-4 border-indigo-900 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
+        {/* HERO SECTION BANNER - AMBER / FLAME ACCENT */}
+        <div className="bg-gradient-to-r from-amber-700 via-orange-800 to-slate-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-orange-950/25 border-b-4 border-amber-950 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="space-y-2 max-w-2xl relative z-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400 text-slate-950 text-xs font-extrabold shadow-sm border-b-2 border-amber-600">
               <span>🤖</span> Curated AI Directory
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               AI Tools & Smart Tutor Suite
             </h1>
-            <p className="text-xs sm:text-sm text-indigo-100 font-medium leading-relaxed">
-              Pair programming assistants, LLMs, paper synthesis tools, and code debuggers.
+            <p className="text-xs sm:text-sm text-amber-100/90 font-medium leading-relaxed">
+              Pair programming assistants, LLMs, research paper tools, and code debuggers. External links open directly in new tabs.
             </p>
           </div>
 
-          <div className="shrink-0">
+          <div className="shrink-0 relative z-10">
             <button
               onClick={onOpenAIAssistant}
-              className="btn-3d btn-3d-amber py-3.5 px-6 text-slate-950 font-extrabold text-sm flex items-center gap-2"
+              className="btn-3d btn-3d-amber py-3.5 px-6 text-slate-950 font-extrabold text-sm flex items-center gap-2 cursor-pointer"
             >
               <span className="material-symbols-outlined text-lg">auto_awesome</span>
               <span>Launch Embedded AI Tutor</span>
@@ -127,9 +128,11 @@ export const AIToolsView: React.FC<AIToolsViewProps> = ({
                     href={tool.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-extrabold transition-all shadow-xs inline-flex items-center gap-1 border-b-2 border-indigo-800 active:border-b-0 active:translate-y-0.5"
+                    title={`Opens ${tool.name} in a new browser tab`}
+                    className="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-extrabold transition-all shadow-xs inline-flex items-center gap-1.5 border-b-2 border-indigo-800 active:border-b-0 active:translate-y-0.5"
                   >
                     <span>Launch</span>
+                    <span className="text-[10px] opacity-80 font-normal">(New Tab)</span>
                     <span className="material-symbols-outlined text-xs">open_in_new</span>
                   </a>
                 </div>
@@ -242,9 +245,11 @@ export const AIToolsView: React.FC<AIToolsViewProps> = ({
                   href={tool.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-extrabold transition-all shadow-xs flex items-center gap-1 border-b-2 border-indigo-800 active:border-b-0 active:translate-y-0.5"
+                  title={`Opens ${tool.name} in a new browser tab`}
+                  className="py-2 px-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-extrabold transition-all shadow-xs flex items-center gap-1.5 border-b-2 border-indigo-800 active:border-b-0 active:translate-y-0.5"
                 >
                   <span>Launch</span>
+                  <span className="text-[10px] opacity-80 font-normal">(New Tab)</span>
                   <span className="material-symbols-outlined text-xs">open_in_new</span>
                 </a>
               </div>
