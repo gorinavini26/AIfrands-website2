@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface TocItem {
   id: string;
@@ -266,8 +267,8 @@ export const MarkdownNotesRenderer: React.FC<MarkdownNotesRendererProps> = ({
         )}
 
         {/* Article Body Content */}
-        <article className="prose prose-slate max-w-none bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/90 shadow-2xs leading-relaxed space-y-2">
-          {renderedElements}
+        <article className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 shadow-2xs leading-relaxed">
+          <MarkdownRenderer content={content} />
         </article>
 
         {/* ADDITIONAL RESOURCES SECTION AT BOTTOM */}

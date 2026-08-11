@@ -1,6 +1,6 @@
 import { doc, getDoc, setDoc, getDocFromServer, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { UserProfile, RoadmapModule, Assignment, Notebook } from '../types';
+import { UserProfile, RoadmapModule, Assignment, Notebook, GameProgress } from '../types';
 import { initialRoadmapModules, initialAssignments, initialNotebooks } from '../data/mockData';
 
 /**
@@ -82,12 +82,22 @@ export function getUidFromEmail(email: string): string {
   return `usr_${cleanStr}_${Math.abs(hash)}`;
 }
 
+export const initialGameProgress: GameProgress = {
+  completedLevels: [],
+  levelStars: {},
+  totalXP: 0,
+  streak: 1,
+  unlockedBadges: [],
+  updatedAt: new Date().toISOString(),
+};
+
 export interface UserData {
   userId: string;
   profile: UserProfile;
   roadmapModules: RoadmapModule[];
   assignments: Assignment[];
   notebooks: Notebook[];
+  gameProgress?: GameProgress;
   updatedAt?: string;
 }
 
@@ -144,6 +154,7 @@ export function createZeroProgressUserData(uid: string, name?: string, email?: s
     roadmapModules: cleanRoadmapModules,
     assignments: cleanAssignments,
     notebooks: cleanNotebooks,
+    gameProgress: initialGameProgress,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -170,9 +181,19 @@ export async function getUserData(uid: string, name?: string, email?: string): P
       return {
         userId: uid,
         profile: mergedProfile,
-        roadmapModules: existingData.roadmapModules || fallback.roadmapModules,
-        assignments: existingData.assignments || fallback.assignments,
-        notebooks: existingData.notebooks || fallback.notebooks,
+        roadmapModules:
+          existingData.roadmapModules && existingData.roadmapModules.length > 0
+            ? existingData.roadmapModules
+            : fallback.roadmapModules,
+        assignments:
+          existingData.assignments && existingData.assignments.length > 0
+            ? existingData.assignments
+            : fallback.assignments,
+        notebooks:
+          existingData.notebooks && existingData.notebooks.length > 0
+            ? existingData.notebooks
+            : fallback.notebooks,
+        gameProgress: existingData.gameProgress || fallback.gameProgress || initialGameProgress,
         updatedAt: existingData.updatedAt || new Date().toISOString(),
       };
     } else {

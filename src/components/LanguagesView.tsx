@@ -40,7 +40,7 @@ export const LanguagesView: React.FC<LanguagesViewProps> = ({
       <div className="max-w-7xl mx-auto w-full space-y-8">
         
         {/* HERO BANNER - ELECTRIC BLUE / CYAN ACCENT */}
-        <div className="bg-gradient-to-r from-blue-700 via-indigo-800 to-slate-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-blue-950/25 border-b-4 border-blue-950 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-800 via-indigo-900 to-slate-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-blue-950/25 border-b-4 border-blue-950 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
           <div className="absolute right-0 top-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="space-y-2 max-w-2xl relative z-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-400 text-slate-950 text-xs font-extrabold shadow-sm border-b-2 border-cyan-600">
@@ -50,7 +50,7 @@ export const LanguagesView: React.FC<LanguagesViewProps> = ({
               Language Paradigms & Code Runner
             </h1>
             <p className="text-xs sm:text-sm text-cyan-100/90 font-medium leading-relaxed">
-              Master Python, C++, Java, and Rust paradigms with live execution and instant AI feedback.
+              Master Python, C++, Java, and Rust paradigms with live execution, instant trace logging, and AI tutoring.
             </p>
           </div>
         </div>
@@ -155,9 +155,22 @@ export const LanguagesView: React.FC<LanguagesViewProps> = ({
             </div>
 
             {/* Execution Console Output */}
-            {outputLog && (
+            {outputLog ? (
               <div className="bg-slate-900 text-emerald-400 p-4 rounded-2xl font-mono text-xs whitespace-pre-wrap leading-relaxed border-2 border-emerald-500/30">
                 {outputLog}
+              </div>
+            ) : (
+              <div className="bg-slate-900 text-slate-300 p-4 rounded-2xl font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-2 border-slate-800">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  <span>Console Ready. Click "Run Code" above to compile & execute your {activeLang.name} program.</span>
+                </div>
+                <button
+                  onClick={handleRunCode}
+                  className="btn-3d btn-3d-amber text-[11px] py-1.5 px-3 self-start sm:self-auto cursor-pointer"
+                >
+                  <span>Run Code</span>
+                </button>
               </div>
             )}
           </div>

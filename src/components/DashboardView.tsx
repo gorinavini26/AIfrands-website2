@@ -985,41 +985,62 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Grade Breakdown Modal */}
       {showGradeModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl border-2 border-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl border-2 border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
-                <h3 className="text-base font-black text-slate-900">Academic Grade Breakdown</h3>
-                <p className="text-xs text-slate-500 font-semibold">Cumulative GPA: 3.92</p>
+                <h3 className="text-base font-black text-slate-900 dark:text-white">Academic Grade Performance</h3>
+                <p className="text-xs text-slate-500 font-semibold">
+                  Cumulative GPA: <strong className="text-indigo-600 dark:text-indigo-400 font-extrabold">{completedModulesCount > 0 ? `${calcGPA} GPA` : 'N/A (0 Completed Modules)'}</strong>
+                </p>
               </div>
               <button
                 onClick={() => setShowGradeModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
-            <div className="space-y-2 text-xs font-semibold">
-              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-                <span className="text-slate-800">Data Structures & Algorithms</span>
-                <span className="text-emerald-600 font-bold">A+ (98%)</span>
+            {completedModulesCount > 0 ? (
+              <div className="space-y-2 text-xs font-semibold">
+                <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700">
+                  <span className="text-slate-800 dark:text-slate-200">Data Structures & Algorithms</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">A+ (98%)</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700">
+                  <span className="text-slate-800 dark:text-slate-200">Operating Systems & Kernels</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">A (92%)</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700">
+                  <span className="text-slate-800 dark:text-slate-200">Web Architecture & REST APIs</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">A+ (95%)</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-                <span className="text-slate-800">Operating Systems & Kernels</span>
-                <span className="text-emerald-600 font-bold">A (92%)</span>
+            ) : (
+              <div className="p-4 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-center space-y-2">
+                <div className="text-2xl">🎓</div>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">No completed modules yet</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Your GPA will be dynamically calculated as you finish modules on the 4-Year Roadmap or submit lab assignments!
+                </p>
+                <button
+                  onClick={() => {
+                    setShowGradeModal(false);
+                    onNavigateTab('roadmap');
+                  }}
+                  className="btn-3d btn-3d-indigo px-3 py-1.5 text-xs font-extrabold cursor-pointer mt-1"
+                >
+                  Start Your First Module
+                </button>
               </div>
-              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-                <span className="text-slate-800">Web Architecture & REST APIs</span>
-                <span className="text-emerald-600 font-bold">A+ (95%)</span>
-              </div>
-            </div>
+            )}
 
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setShowGradeModal(false)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                className="btn-3d btn-3d-slate px-4 py-2 text-xs font-extrabold cursor-pointer"
               >
-                Done
+                Close
               </button>
             </div>
           </div>

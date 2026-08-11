@@ -7,6 +7,7 @@ interface RoadmapViewProps {
   onMarkModuleComplete: (moduleId: string) => void;
   onNavigateTab: (tab: string) => void;
   onOpenAIAssistant: () => void;
+  onRestoreModules?: () => void;
 }
 
 export const RoadmapView: React.FC<RoadmapViewProps> = ({
@@ -15,6 +16,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
   onMarkModuleComplete,
   onNavigateTab,
   onOpenAIAssistant,
+  onRestoreModules,
 }) => {
   const [selectedYear, setSelectedYear] = useState<number | 'all'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -337,8 +339,35 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
           </div>
 
           {/* Module Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {filteredModules.map((mod, idx) => {
+          {filteredModules.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-800 rounded-3xl p-10 text-center space-y-4 shadow-xs">
+              <div className="w-14 h-14 bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 rounded-2xl flex items-center justify-center font-extrabold text-2xl mx-auto shadow-xs">
+                🧭
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                No Modules Found
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                No curriculum modules match Year {selectedYear} with category "{selectedCategory}". Reset filters to explore the full 4-year BTech CS roadmap!
+              </p>
+              <div className="pt-2 flex justify-center gap-2">
+                <button
+                  onClick={() => {
+                    setSelectedYear('all');
+                    setSelectedCategory('All');
+                    if (roadmapModules.length === 0 && onRestoreModules) {
+                      onRestoreModules();
+                    }
+                  }}
+                  className="btn-3d btn-3d-indigo py-2.5 px-5 text-xs font-extrabold inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <span>Reset Filters & Show All Modules</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {filteredModules.map((mod, idx) => {
               const isExpanded = expandedModuleId === mod.id;
               const isCompleted = mod.status === 'completed';
               const isInProgress = mod.status === 'in_progress';
@@ -538,6 +567,7 @@ export const RoadmapView: React.FC<RoadmapViewProps> = ({
               );
             })}
           </div>
+        )}
         </div>
 
       </div>

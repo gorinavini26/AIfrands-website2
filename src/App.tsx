@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { UserProfile, RoadmapModule, AITool, Assignment, Notebook, TechLanguage } from './types';
+import { UserProfile, RoadmapModule, AITool, Assignment, Notebook, TechLanguage, GameProgress } from './types';
 import { initialProfile, initialRoadmapModules, initialAITools, initialAssignments, initialNotebooks, techLanguages } from './data/mockData';
 import { auth, signOut, onAuthStateChanged } from './firebase';
-import { getUserData, saveUserData, getUidFromEmail } from './services/userService';
+import { getUserData, saveUserData, getUidFromEmail, initialGameProgress } from './services/userService';
 import { AuthView } from './components/AuthView';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
+import { CodingGameView } from './components/CodingGameView';
 import { RoadmapView } from './components/RoadmapView';
 import { AIToolsView } from './components/AIToolsView';
 import { LanguagesView } from './components/LanguagesView';
@@ -31,6 +32,14 @@ export function App() {
   const [assignments, setAssignments] = useState<Assignment[]>(initialAssignments);
   const [notebooks, setNotebooks] = useState<Notebook[]>(initialNotebooks);
   const [languages, setLanguages] = useState<TechLanguage[]>(techLanguages);
+  const [gameProgress, setGameProgress] = useState<GameProgress>(() => {
+    try {
+      const saved = localStorage.getItem('aifrands_game_progress');
+      return saved ? JSON.parse(saved) : initialGameProgress;
+    } catch {
+      return initialGameProgress;
+    }
+  });
 
   // Auth & Token state
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -81,9 +90,16 @@ export function App() {
       setIsAuthenticated(true);
       getUserData(uid, savedName, savedEmail).then((userData) => {
         setProfile(userData.profile);
-        setRoadmapModules(userData.roadmapModules);
+        const activeModules = (userData.roadmapModules && userData.roadmapModules.length > 0)
+          ? userData.roadmapModules
+          : initialRoadmapModules;
+        setRoadmapModules(activeModules);
         setAssignments(userData.assignments);
         setNotebooks(userData.notebooks);
+
+        if (!userData.roadmapModules || userData.roadmapModules.length === 0) {
+          saveUserData(uid, { roadmapModules: initialRoadmapModules });
+        }
       });
       return;
     }
@@ -99,9 +115,19 @@ export function App() {
 
         const userData = await getUserData(uid, userName, userEmail);
         setProfile(userData.profile);
-        setRoadmapModules(userData.roadmapModules);
+        const activeModules = (userData.roadmapModules && userData.roadmapModules.length > 0)
+          ? userData.roadmapModules
+          : initialRoadmapModules;
+        setRoadmapModules(activeModules);
         setAssignments(userData.assignments);
         setNotebooks(userData.notebooks);
+        if (userData.gameProgress) {
+          setGameProgress(userData.gameProgress);
+        }
+
+        if (!userData.roadmapModules || userData.roadmapModules.length === 0) {
+          saveUserData(uid, { roadmapModules: initialRoadmapModules });
+        }
       } else {
         setIsAuthenticated(false);
         setCurrentUserUid(null);
@@ -150,10 +176,31 @@ export function App() {
     // Retrieve or create per-user record in Firestore
     const userData = await getUserData(uid, user.name, user.email);
     setProfile(userData.profile);
-    setRoadmapModules(userData.roadmapModules);
+    const activeModules = (userData.roadmapModules && userData.roadmapModules.length > 0)
+      ? userData.roadmapModules
+      : initialRoadmapModules;
+    setRoadmapModules(activeModules);
     setAssignments(userData.assignments);
     setNotebooks(userData.notebooks);
+    if (userData.gameProgress) {
+      setGameProgress(userData.gameProgress);
+    }
+    if (!userData.roadmapModules || userData.roadmapModules.length === 0) {
+      saveUserData(uid, { roadmapModules: initialRoadmapModules });
+    }
     setActiveTab('dashboard');
+  };
+
+  const handleSaveGameProgress = (updated: Partial<GameProgress>) => {
+    const merged = { ...gameProgress, ...updated, updatedAt: new Date().toISOString() };
+    setGameProgress(merged);
+    try {
+      localStorage.setItem('aifrands_game_progress', JSON.stringify(merged));
+    } catch {}
+
+    if (currentUserUid) {
+      saveUserData(currentUserUid, { gameProgress: merged });
+    }
   };
 
   // Handlers
@@ -243,39 +290,38 @@ export function App() {
   };
 
   const handleToggleTopicCheck = async (moduleId: string, topicIndex: number) => {
-    let updatedModules: RoadmapModule[] = [];
-    setRoadmapModules((prev) => {
-      updatedModules = prev.map((mod) => {
-        if (mod.id !== moduleId) return mod;
+    const sourceModules = roadmapModules.length > 0 ? roadmapModules : initialRoadmapModules;
+    const updatedModules = sourceModules.map((mod) => {
+      if (mod.id !== moduleId) return mod;
 
-        const newTopics = mod.topics.map((t, idx) =>
-          idx === topicIndex ? { ...t, completed: !t.completed } : t
-        );
+      const newTopics = mod.topics.map((t, idx) =>
+        idx === topicIndex ? { ...t, completed: !t.completed } : t
+      );
 
-        const completedCount = newTopics.filter((t) => t.completed).length;
-        const totalCount = newTopics.length;
-        const newProgress = totalCount
-          ? Math.round((completedCount / totalCount) * 100)
-          : 0;
+      const completedCount = newTopics.filter((t) => t.completed).length;
+      const totalCount = newTopics.length;
+      const newProgress = totalCount
+        ? Math.round((completedCount / totalCount) * 100)
+        : 0;
 
-        let newStatus = mod.status;
-        if (newProgress === 100) {
-          newStatus = 'completed';
-        } else if (newProgress > 0) {
-          newStatus = 'in_progress';
-        } else {
-          newStatus = mod.year > 2 ? 'locked' : 'in_progress';
-        }
+      let newStatus = mod.status;
+      if (newProgress === 100) {
+        newStatus = 'completed';
+      } else if (newProgress > 0) {
+        newStatus = 'in_progress';
+      } else {
+        newStatus = mod.year > 2 ? 'locked' : 'in_progress';
+      }
 
-        return {
-          ...mod,
-          topics: newTopics,
-          progress: newProgress,
-          status: newStatus as 'completed' | 'in_progress' | 'locked',
-        };
-      });
-      return updatedModules;
+      return {
+        ...mod,
+        topics: newTopics,
+        progress: newProgress,
+        status: newStatus as 'completed' | 'in_progress' | 'locked',
+      };
     });
+
+    setRoadmapModules(updatedModules);
 
     if (currentUserUid) {
       await saveUserData(currentUserUid, { roadmapModules: updatedModules });
@@ -283,28 +329,35 @@ export function App() {
   };
 
   const handleMarkModuleComplete = async (moduleId: string) => {
-    let updatedModules: RoadmapModule[] = [];
-    setRoadmapModules((prev) => {
-      updatedModules = prev.map((mod) => {
-        if (mod.id !== moduleId) return mod;
+    const sourceModules = roadmapModules.length > 0 ? roadmapModules : initialRoadmapModules;
+    const updatedModules = sourceModules.map((mod) => {
+      if (mod.id !== moduleId) return mod;
 
-        const newTopics = mod.topics.map((t) => ({ ...t, completed: true }));
-        return {
-          ...mod,
-          topics: newTopics,
-          progress: 100,
-          status: 'completed' as const,
-        };
-      });
-      return updatedModules;
+      const newTopics = mod.topics.map((t) => ({ ...t, completed: true }));
+      return {
+        ...mod,
+        topics: newTopics,
+        progress: 100,
+        status: 'completed' as const,
+      };
     });
+
+    setRoadmapModules(updatedModules);
 
     if (currentUserUid) {
       await saveUserData(currentUserUid, { roadmapModules: updatedModules });
     }
 
-    const modName = roadmapModules.find((m) => m.id === moduleId)?.title || 'Module';
+    const modName = sourceModules.find((m) => m.id === moduleId)?.title || 'Module';
     setToastMessage(`🎉 Module "${modName}" marked as 100% complete!`);
+  };
+
+  const handleRestoreModules = async () => {
+    setRoadmapModules(initialRoadmapModules);
+    setToastMessage('✅ Curriculum modules restored successfully!');
+    if (currentUserUid) {
+      await saveUserData(currentUserUid, { roadmapModules: initialRoadmapModules });
+    }
   };
 
   const handleHeaderSearch = (term: string) => {
@@ -325,7 +378,7 @@ export function App() {
         {toastMessage && (
           <NotificationToast
             message={toastMessage}
-            onClose={() => setToastMessage(null)}
+            onClear={() => setToastMessage(null)}
           />
         )}
       </>
@@ -387,11 +440,22 @@ export function App() {
           />
         )}
 
+        {activeTab === 'code-quest' && (
+          <CodingGameView
+            gameProgress={gameProgress}
+            onSaveProgress={handleSaveGameProgress}
+            currentUserUid={currentUserUid}
+            profile={profile}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+          />
+        )}
+
         {activeTab === 'roadmap' && (
           <RoadmapView
             roadmapModules={roadmapModules}
             onToggleTopicCheck={handleToggleTopicCheck}
             onMarkModuleComplete={handleMarkModuleComplete}
+            onRestoreModules={handleRestoreModules}
             onNavigateTab={(tab) => setActiveTab(tab)}
             onOpenAIAssistant={() => {
               setAIAssistantCode(undefined);

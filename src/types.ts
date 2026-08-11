@@ -118,3 +118,12 @@ export interface ContactFormResponse {
     submittedAt: string;
   };
 }
+
+export interface GameProgress {
+  completedLevels: number[];
+  levelStars: Record<number, number>;
+  totalXP: number;
+  streak: number;
+  unlockedBadges: string[];
+  updatedAt?: string;
+}

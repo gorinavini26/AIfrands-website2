@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface AIAssistantModalProps {
   isOpen: boolean;
@@ -116,13 +117,17 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
               }`}
             >
               <div
-                className={`max-w-[80%] p-3.5 rounded-2xl shadow-2xs font-sans ${
+                className={`max-w-[85%] sm:max-w-[80%] p-3.5 sm:p-4 rounded-2xl shadow-2xs font-sans ${
                   m.sender === 'user'
                     ? 'bg-indigo-600 text-white font-bold rounded-br-xs'
-                    : 'bg-white border border-slate-200 text-slate-800 rounded-bl-xs leading-relaxed font-medium'
+                    : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-xs leading-relaxed font-medium'
                 }`}
               >
-                {m.text}
+                {m.sender === 'user' ? (
+                  <p className="whitespace-pre-wrap">{m.text}</p>
+                ) : (
+                  <MarkdownRenderer content={m.text} />
+                )}
               </div>
             </div>
           ))}

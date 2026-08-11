@@ -28,6 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Exactly 5 main navigation items as requested
   const navItems = [
     { id: 'dashboard', label: 'DASHBOARD', icon: 'grid_view', badge: 'Home' },
+    { id: 'code-quest', label: 'CODE QUEST', icon: 'sports_esports', badge: 'Game' },
     { id: 'roadmap', label: 'ROADMAP', icon: 'map', badge: 'Sem 3' },
     { id: 'ai-tools', label: 'AI TUTORS & TOOLS', icon: 'auto_awesome', badge: 'AI' },
     { id: 'languages', label: 'PRACTICE & STACK', icon: 'code_blocks', badge: 'Code' },
