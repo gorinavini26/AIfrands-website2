@@ -480,8 +480,77 @@ export const CodingGameView: React.FC<CodingGameViewProps> = ({
       {/* Show Confetti on Level Win */}
       {showWinModal && <ConfettiCanvas />}
 
+      {/* HERO HEADLINE BANNER AT THE TOP OF CODE QUEST PAGE */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-950 p-6 sm:p-8 text-white shadow-2xl border border-indigo-500/40 ring-1 ring-white/10 group">
+        {/* Background Glowing Ambient Orbs */}
+        <div className="absolute -top-16 -left-16 w-56 h-56 rounded-full bg-amber-500/20 blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-purple-500/30 blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none" />
+
+        {/* Floating Decorative Coding & Gaming Icons */}
+        <div className="absolute top-4 right-6 sm:right-10 opacity-25 group-hover:opacity-50 transition-opacity pointer-events-none animate-bounce-subtle">
+          <span className="text-4xl sm:text-5xl">🎮</span>
+        </div>
+        <div className="absolute bottom-4 right-16 sm:right-28 opacity-25 group-hover:opacity-50 transition-opacity pointer-events-none animate-bounce-subtle" style={{ animationDelay: '1s' }}>
+          <span className="text-3xl sm:text-4xl">⚡</span>
+        </div>
+        <div className="absolute top-10 right-32 opacity-20 pointer-events-none animate-bounce-subtle hidden md:block" style={{ animationDelay: '0.5s' }}>
+          <span className="text-2xl font-mono text-cyan-300 font-black">{`{ code }`}</span>
+        </div>
+        <div className="absolute bottom-6 left-8 opacity-20 pointer-events-none animate-bounce-subtle hidden sm:block" style={{ animationDelay: '1.5s' }}>
+          <span className="text-2xl font-mono text-amber-300 font-black">{`</>`}</span>
+        </div>
+
+        <div className="relative z-10 max-w-4xl space-y-3">
+          {/* Top Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-900/80 border border-indigo-400/30 text-xs font-extrabold text-amber-300 shadow-inner backdrop-blur-md">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
+            <span className="tracking-wide uppercase">Code Quest • Beginner Friendly</span>
+          </div>
+
+          {/* Main Heading */}
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-snug sm:leading-tight text-white font-heading">
+            Coding ka ABC bhi nahi pata tha? <br className="hidden sm:inline" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-200 to-yellow-400">
+              Koi tension nahi — yahan khel-khel mein seekhoge!
+            </span>
+          </h1>
+
+          {/* Subtext */}
+          <p className="text-sm sm:text-base text-indigo-100 font-medium leading-relaxed max-w-2xl">
+            Zero experience? Perfect start. Play, learn, aur dheere-dheere ban jao coding pro.
+          </p>
+
+          {/* Quick Features & Play Direct Button */}
+          <div className="pt-2 flex flex-wrap items-center gap-2.5 text-xs font-extrabold text-indigo-200">
+            <span className="px-3 py-1.5 rounded-xl bg-slate-900/60 border border-indigo-500/30 flex items-center gap-1.5 backdrop-blur-sm">
+              <span className="text-amber-400">🧩</span> Drag & Drop Logic
+            </span>
+            <span className="px-3 py-1.5 rounded-xl bg-slate-900/60 border border-indigo-500/30 flex items-center gap-1.5 backdrop-blur-sm">
+              <span className="text-emerald-400">🚀</span> 100% Fun Learning
+            </span>
+            <span className="px-3 py-1.5 rounded-xl bg-slate-900/60 border border-indigo-500/30 flex items-center gap-1.5 backdrop-blur-sm">
+              <span className="text-purple-400">⭐</span> Earn Stars & XP
+            </span>
+            <a
+              href="#game-area"
+              onClick={(e) => {
+                e.preventDefault();
+                const elem = document.getElementById('game-area');
+                if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black flex items-center gap-1.5 shadow-lg shadow-amber-500/20 hover:from-amber-400 hover:to-orange-400 transition-all cursor-pointer transform hover:scale-105 active:scale-95 ml-auto sm:ml-0"
+            >
+              <span>Play Now</span>
+              <span className="material-symbols-outlined text-sm font-bold">arrow_downward</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* HEADER BANNER / GAME METRICS BAR */}
-      <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 rounded-3xl p-5 sm:p-6 text-white shadow-xl border border-indigo-700/60 relative overflow-hidden">
+      <div id="game-area" className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 rounded-3xl p-5 sm:p-6 text-white shadow-xl border border-indigo-700/60 relative overflow-hidden">
         {/* Background Decorative Shapes */}
         <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-indigo-500/20 blur-2xl pointer-events-none" />
         <div className="absolute left-1/3 -top-10 w-32 h-32 rounded-full bg-amber-500/10 blur-xl pointer-events-none" />

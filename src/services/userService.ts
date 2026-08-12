@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, getDocFromServer, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getDocFromServer, getCountFromServer, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { UserProfile, RoadmapModule, Assignment, Notebook, GameProgress } from '../types';
 import { initialRoadmapModules, initialAssignments, initialNotebooks } from '../data/mockData';
@@ -18,6 +18,21 @@ export async function saveSignupToFirestore(name: string, email: string): Promis
     console.info(`Saved signup record to Firestore signups collection for ${email}`);
   } catch (err) {
     console.error('Failed to save signup record to Firestore signups collection:', err);
+  }
+}
+
+/**
+ * Dynamically fetches the actual number of signed-up users from Firestore 'signups' collection.
+ * Returns null or 0 if count cannot be fetched (e.g., offline or empty).
+ */
+export async function getSignupsCountFromFirestore(): Promise<number> {
+  try {
+    const signupsCollection = collection(db, 'signups');
+    const snapshot = await getCountFromServer(signupsCollection);
+    return snapshot.data().count || 0;
+  } catch (err) {
+    console.info('Notice: Could not fetch signups count from Firestore, using default honest text display.', err);
+    return 0;
   }
 }
 

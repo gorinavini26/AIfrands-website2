@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Logo } from './Logo';
-import { saveSignupToFirestore } from '../services/userService';
+import { saveSignupToFirestore, getSignupsCountFromFirestore } from '../services/userService';
+import { AnimatedCounter } from './AnimatedCounter';
+import { TestimonialsSection } from './TestimonialsSection';
 
 interface AuthViewProps {
   onAuthSuccess: (user: { name: string; email: string }) => void;
@@ -12,6 +14,16 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess, onShowToast }
   const [email, setEmail] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [realSignupCount, setRealSignupCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Fetch actual real signed-up users count from Firestore (no fake numbers)
+    getSignupsCountFromFirestore().then((cnt) => {
+      if (typeof cnt === 'number' && cnt > 0) {
+        setRealSignupCount(cnt);
+      }
+    });
+  }, []);
 
   const validateEmail = (val: string): boolean => {
     // Basic email format check: contains @ and a dot domain
@@ -87,14 +99,24 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess, onShowToast }
             "Your 4-year CS roadmap, AI-guided, one semester at a time."
           </p>
 
-          {/* SOCIAL PROOF LINE */}
+          {/* SOCIAL PROOF LINE - Honest, dynamic count or clean generic phrase */}
           <div className="pt-2 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs text-slate-300 font-bold bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800/80 w-fit mx-auto">
             <div className="flex -space-x-2 overflow-hidden">
               <span className="inline-block h-6 w-6 rounded-full ring-2 ring-slate-900 bg-gradient-to-tr from-indigo-500 to-purple-600 text-white text-[10px] font-black flex items-center justify-center">AR</span>
               <span className="inline-block h-6 w-6 rounded-full ring-2 ring-slate-900 bg-gradient-to-tr from-emerald-500 to-teal-600 text-white text-[10px] font-black flex items-center justify-center">SK</span>
               <span className="inline-block h-6 w-6 rounded-full ring-2 ring-slate-900 bg-gradient-to-tr from-amber-500 to-orange-600 text-white text-[10px] font-black flex items-center justify-center">JM</span>
             </div>
-            <span>⚡ Join <strong className="text-amber-300 font-extrabold">1,450+ students</strong> already on their CS journey</span>
+            <span>
+              ⚡ {realSignupCount && realSignupCount > 0 ? (
+                <>
+                  Join <strong className="text-amber-300 font-extrabold"><AnimatedCounter value={realSignupCount} /> {realSignupCount === 1 ? 'student' : 'students'}</strong> starting their CS journey
+                </>
+              ) : (
+                <>
+                  Join <strong className="text-amber-300 font-extrabold">students</strong> starting their CS journey
+                </>
+              )}
+            </span>
           </div>
         </div>
 
@@ -221,53 +243,8 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess, onShowToast }
           </div>
         </div>
 
-        {/* TESTIMONIAL CARDS (Clearly marked as editable placeholders) */}
-        <div className="space-y-3 pt-4">
-          <div className="text-center">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Student Feedback</span>
-            <h3 className="text-sm font-extrabold text-slate-300">Loved By CS Undergrads</h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-            {/* Testimonial 1 */}
-            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 space-y-2 text-left relative">
-              <span className="absolute top-2 right-2 text-[9px] font-bold uppercase tracking-wider text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded-full border border-amber-800/50">
-                [Placeholder Testimonial]
-              </span>
-              <p className="text-xs text-slate-300 italic leading-relaxed pt-1">
-                "AI Frands helped me breeze through Year 1 C++ & Data Structures without getting overwhelmed. The semester-by-semester roadmap is a game changer!"
-              </p>
-              <div className="flex items-center gap-2 pt-1">
-                <div className="w-7 h-7 rounded-full bg-indigo-600 text-white font-extrabold text-xs flex items-center justify-center">
-                  AM
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-white">Alex M.</p>
-                  <p className="text-[10px] text-slate-400">CS Year 2 Student • Stanford Cohort</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Testimonial 2 */}
-            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 space-y-2 text-left relative">
-              <span className="absolute top-2 right-2 text-[9px] font-bold uppercase tracking-wider text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded-full border border-amber-800/50">
-                [Placeholder Testimonial]
-              </span>
-              <p className="text-xs text-slate-300 italic leading-relaxed pt-1">
-                "Having AI-guided module checklists and curated YouTube tutorials for Operating Systems made my Semester 4 exam prep practically effortless."
-              </p>
-              <div className="flex items-center gap-2 pt-1">
-                <div className="w-7 h-7 rounded-full bg-purple-600 text-white font-extrabold text-xs flex items-center justify-center">
-                  SR
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-white">Samantha R.</p>
-                  <p className="text-[10px] text-slate-400">BTech CS Year 3 • UIUC</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* TESTIMONIALS SECTION (Renders only when real student feedback is available) */}
+        <TestimonialsSection />
 
       </div>
     </div>
