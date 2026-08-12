@@ -578,7 +578,176 @@ export const initialAssignments: Assignment[] = [
     dueDate: 'Due Tomorrow, 11:59 PM',
     status: 'Pending',
     isDueSoon: true,
+    difficulty: 'Beginner',
     description: 'Implement a self-balancing AVL binary search tree in C++ with insert, delete, rotateLeft, and rotateRight methods.',
+    conceptExplainer: {
+      whatIsIt: 'A Binary Search Tree (BST) is a hierarchical node-based data structure. Every node contains a value and two child pointers (left and right). The core invariant is: every node in the left subtree is SMALLER than the parent, and every node in the right subtree is GREATER than the parent.',
+      whyItIsUsed: 'Instead of scanning through N elements in an unorganized array (O(N) search time), a BST cuts the search space in half at every comparison, achieving lightning-fast O(log N) lookup, insertion, and deletion. BSTs power database indexes, auto-complete lookup tables, and compiler symbol tables.',
+      keyTerms: [
+        { term: 'Root Node', definition: 'The topmost starting node of the tree with no parent.' },
+        { term: 'Leaf Node', definition: 'A node with no left or right children (both left and right pointers are nullptr).' },
+        { term: 'In-Order Traversal', definition: 'Visiting Left Subtree → Current Node → Right Subtree. On a BST, this ALWAYS prints values in sorted ascending order!' },
+        { term: 'Height & Balance Factor', definition: 'The height of a node is the length of the longest path to a leaf. Balance factor = Height(Left) - Height(Right). An AVL tree keeps this between -1 and +1 by performing rotations.' },
+      ],
+    },
+    roadmapSteps: [
+      {
+        stepNumber: 1,
+        title: 'Define the Node Structure',
+        description: 'Create a struct containing an integer key, left and right node pointers initialized to nullptr, and an integer height property.',
+        skeletonHint: 'struct Node {\n    int key;\n    Node *left = nullptr, *right = nullptr;\n    int height = 1;\n};',
+      },
+      {
+        stepNumber: 2,
+        title: 'Implement Height & Balance Factor Helpers',
+        description: 'Write helper functions `height(Node* n)` (returns 0 if n is nullptr) and `getBalance(Node* n)` (returns height(left) - height(right)).',
+        skeletonHint: 'int height(Node* n) { return n ? n->height : 0; }\nint getBalance(Node* n) { return n ? height(n->left) - height(n->right) : 0; }',
+      },
+      {
+        stepNumber: 3,
+        title: 'Write Rotation Functions (rotateLeft & rotateRight)',
+        description: 'When inserting a node makes a subtree unbalanced (|balance| > 1), perform single rotations to re-balance node pointers and recalculate heights.',
+        skeletonHint: 'Node* rotateRight(Node* y) {\n    Node* x = y->left;\n    Node* T2 = x->right;\n    x->right = y; y->left = T2;\n    y->height = 1 + max(height(y->left), height(y->right));\n    x->height = 1 + max(height(x->left), height(x->right));\n    return x;\n}',
+      },
+      {
+        stepNumber: 4,
+        title: 'Build the Recursive Insert Function',
+        description: 'Recursively traverse down left or right based on key comparison, insert the new node at the leaf position, update node heights, and apply rotations if unbalanced.',
+        skeletonHint: 'Node* insert(Node* node, int key) {\n    if (!node) return new Node(key);\n    if (key < node->key) node->left = insert(node->left, key);\n    else if (key > node->key) node->right = insert(node->right, key);\n    else return node;\n    // Update height & rebalance...\n}',
+      },
+      {
+        stepNumber: 5,
+        title: 'In-Order Traversal & Main Verification',
+        description: 'Traverse the tree in-order to verify that items print in sorted order, and print the root node height.',
+        skeletonHint: 'void inOrder(Node* root) {\n    if (!root) return;\n    inOrder(root->left);\n    cout << root->key << " ";\n    inOrder(root->right);\n}',
+      },
+    ],
+    starterSkeletonCode: `// Binary Search Tree (AVL) Beginner Implementation
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+// STEP 1: Define Node Structure
+struct Node {
+    int key;
+    Node *left;
+    Node *right;
+    int height;
+    
+    Node(int val) : key(val), left(nullptr), right(nullptr), height(1) {}
+};
+
+// STEP 2: Height Helper Function
+int height(Node *N) {
+    if (N == nullptr) return 0;
+    return N->height;
+}
+
+// STEP 2: Get Balance Factor
+int getBalance(Node *N) {
+    if (N == nullptr) return 0;
+    return height(N->left) - height(N->right);
+}
+
+// STEP 3: Right Rotation
+Node* rotateRight(Node *y) {
+    Node *x = y->left;
+    Node *T2 = x->right;
+
+    // Perform rotation
+    x->right = y;
+    y->left = T2;
+
+    // Update heights
+    y->height = max(height(y->left), height(y->right)) + 1;
+    x->height = max(height(x->left), height(x->right)) + 1;
+
+    return x;
+}
+
+// STEP 3: Left Rotation
+Node* rotateLeft(Node *x) {
+    Node *y = x->right;
+    Node *T2 = y->left;
+
+    // Perform rotation
+    y->left = x;
+    x->right = T2;
+
+    // Update heights
+    x->height = max(height(x->left), height(x->right)) + 1;
+    y->height = max(height(y->left), height(y->right)) + 1;
+
+    return y;
+}
+
+// STEP 4: Recursive Insert Function
+Node* insert(Node* node, int key) {
+    // 1. Normal BST insertion
+    if (node == nullptr) return new Node(key);
+
+    if (key < node->key)
+        node->left = insert(node->left, key);
+    else if (key > node->key)
+        node->right = insert(node->right, key);
+    else
+        return node; // Duplicate keys not allowed
+
+    // 2. Update height of ancestor node
+    node->height = 1 + max(height(node->left), height(node->right));
+
+    // 3. Get balance factor to check if node became unbalanced
+    int balance = getBalance(node);
+
+    // Left Left Case
+    if (balance > 1 && key < node->left->key)
+        return rotateRight(node);
+
+    // Right Right Case
+    if (balance < -1 && key > node->right->key)
+        return rotateLeft(node);
+
+    // Left Right Case
+    if (balance > 1 && key > node->left->key) {
+        node->left = rotateLeft(node->left);
+        return rotateRight(node);
+    }
+
+    // Right Left Case
+    if (balance < -1 && key < node->right->key) {
+        node->right = rotateRight(node->right);
+        return rotateLeft(node);
+    }
+
+    return node;
+}
+
+// STEP 5: In-Order Traversal
+void inOrder(Node *root) {
+    if (root != nullptr) {
+        inOrder(root->left);
+        cout << root->key << " ";
+        inOrder(root->right);
+    }
+}
+
+int main() {
+    Node *root = nullptr;
+
+    // Constructing AVL Tree
+    root = insert(root, 10);
+    root = insert(root, 20);
+    root = insert(root, 30);
+    root = insert(root, 40);
+    root = insert(root, 50);
+    root = insert(root, 25);
+
+    cout << "In-order traversal of constructed AVL BST: ";
+    inOrder(root);
+    cout << endl;
+
+    return 0;
+}`,
     submissionCode: `// Binary Search Tree (AVL) Implementation
 #include <iostream>
 using namespace std;
@@ -603,7 +772,111 @@ int height(Node *N) {
     dueDate: 'Oct 15, 2026',
     status: 'Pending',
     isDueSoon: false,
+    difficulty: 'Intermediate',
     description: 'Simulate Round Robin and Shortest Job First CPU scheduling algorithms using pthread in C.',
+    conceptExplainer: {
+      whatIsIt: 'A CPU Process Scheduler is a core operating system component that decides which thread or process gets CPU core execution time. In this lab, you simulate multi-threaded CPU scheduling using POSIX threads (`pthreads`).',
+      whyItIsUsed: 'Modern CPUs have multiple cores running hundreds of competing user processes (browsers, music players, IDEs). Round Robin (RR) gives every process an equal time quantum (e.g., 2s) to ensure interactive responsiveness, while Shortest Job First (SJF) minimizes total average waiting time.',
+      keyTerms: [
+        { term: 'Time Quantum', definition: 'The maximum duration a thread is allowed to run uninterrupted in Round Robin scheduling before being preempted.' },
+        { term: 'pthread & Mutex', definition: 'POSIX C thread primitives. `pthread_mutex_t` locks shared queue structures to prevent multi-threaded data corruption.' },
+        { term: 'Context Switching', definition: 'Saving the state (registers, stack pointer) of a running process and loading the state of the next scheduled process.' },
+        { term: 'Turnaround Time', definition: 'Total time taken from process submission to completion: Turnaround = Completion Time - Arrival Time.' },
+      ],
+    },
+    roadmapSteps: [
+      {
+        stepNumber: 1,
+        title: 'Define Process Control Block (PCB)',
+        description: 'Define a struct storing process ID, arrival time, burst time, remaining time, and waiting time.',
+        skeletonHint: 'typedef struct {\n    int pid;\n    int burst_time;\n    int remaining_time;\n    int waiting_time;\n} Process;',
+      },
+      {
+        stepNumber: 2,
+        title: 'Initialize POSIX Mutex & Ready Queue',
+        description: 'Set up a thread-safe ready queue using `pthread_mutex_init()` to lock enqueue/dequeue operations.',
+        skeletonHint: 'pthread_mutex_t queue_lock;\npthread_mutex_init(&queue_lock, NULL);',
+      },
+      {
+        stepNumber: 3,
+        title: 'Implement Round Robin Quantum Loop',
+        description: 'Loop over waiting processes, granting up to `QUANTUM = 2` units of burst execution per turn until remaining_time reaching 0.',
+        skeletonHint: 'if (p->remaining_time > QUANTUM) {\n    time += QUANTUM;\n    p->remaining_time -= QUANTUM;\n} else {\n    time += p->remaining_time;\n    p->remaining_time = 0;\n}',
+      },
+      {
+        stepNumber: 4,
+        title: 'Calculate Scheduler Performance Metrics',
+        description: 'Compute Average Waiting Time and Average Turnaround Time across all simulated threads.',
+        skeletonHint: 'float avg_wait = total_wait / (float)num_processes;\nprintf("Average Waiting Time: %.2f ms\\n", avg_wait);',
+      },
+    ],
+    starterSkeletonCode: `// Multi-Threaded Process Scheduler in C
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <unistd.h>
+
+#define MAX_PROCESSES 5
+#define QUANTUM 2
+
+typedef struct {
+    int pid;
+    int burst_time;
+    int remaining_time;
+    int waiting_time;
+    int turnaround_time;
+} Process;
+
+Process queue[MAX_PROCESSES];
+pthread_mutex_t lock;
+
+void run_round_robin() {
+    int current_time = 0;
+    int completed = 0;
+    
+    printf("--- Round Robin CPU Scheduling (Quantum = %d) ---\\n", QUANTUM);
+    
+    while (completed < MAX_PROCESSES) {
+        for (int i = 0; i < MAX_PROCESSES; i++) {
+            pthread_mutex_lock(&lock);
+            if (queue[i].remaining_time > 0) {
+                if (queue[i].remaining_time > QUANTUM) {
+                    current_time += QUANTUM;
+                    queue[i].remaining_time -= QUANTUM;
+                    printf("[Time %2d] Process P%d executed for %d units (Remaining: %d)\\n",
+                           current_time, queue[i].pid, QUANTUM, queue[i].remaining_time);
+                } else {
+                    current_time += queue[i].remaining_time;
+                    queue[i].waiting_time = current_time - queue[i].burst_time;
+                    queue[i].turnaround_time = current_time;
+                    queue[i].remaining_time = 0;
+                    completed++;
+                    printf("[Time %2d] Process P%d COMPLETED! (Turnaround: %d ms, Wait: %d ms)\\n",
+                           current_time, queue[i].pid, queue[i].turnaround_time, queue[i].waiting_time);
+                }
+            }
+            pthread_mutex_unlock(&lock);
+            usleep(100000); // simulate context switch delay
+        }
+    }
+}
+
+int main() {
+    pthread_mutex_init(&lock, NULL);
+    
+    // Sample Processes: PID, Burst Time
+    int bursts[MAX_PROCESSES] = {10, 5, 8, 3, 6};
+    for (int i = 0; i < MAX_PROCESSES; i++) {
+        queue[i].pid = i + 1;
+        queue[i].burst_time = bursts[i];
+        queue[i].remaining_time = bursts[i];
+        queue[i].waiting_time = 0;
+    }
+    
+    run_round_robin();
+    pthread_mutex_destroy(&lock);
+    return 0;
+}`,
   },
   {
     id: 'asg_3',
@@ -614,7 +887,69 @@ int height(Node *N) {
     status: 'Submitted',
     isDueSoon: false,
     grade: 'A (95/100)',
+    difficulty: 'Intermediate',
     description: 'Build a secure RESTful API with user authentication and JSON data persistence.',
+    conceptExplainer: {
+      whatIsIt: 'A RESTful Web API built with Node.js and Express serves structured JSON data across endpoints to web or mobile client applications.',
+      whyItIsUsed: 'Express handles web requests efficiently using middleware functions, enabling robust user authentication, data validation, and clean separation between backend database models and client views.',
+      keyTerms: [
+        { term: 'Middleware', definition: 'Functions that execute sequentially before reaching main route logic (e.g. `express.json()`, request logger, JWT auth verification).' },
+        { term: 'HTTP Verbs', definition: 'GET (Retrieve), POST (Create), PUT/PATCH (Update), DELETE (Remove).' },
+        { term: 'JWT Authentication', definition: 'JSON Web Tokens signed server-side and sent in the `Authorization: Bearer <token>` header to authenticate requests.' },
+      ],
+    },
+    roadmapSteps: [
+      {
+        stepNumber: 1,
+        title: 'Initialize Express Server & Global Middleware',
+        description: 'Set up Express server listening on port 3000 and parse JSON payloads using `express.json()`.',
+        skeletonHint: 'const express = require("express");\nconst app = express();\napp.use(express.json());',
+      },
+      {
+        stepNumber: 2,
+        title: 'Create Auth Route /api/v1/auth/login',
+        description: 'Validate user credentials and return a signed JSON Web Token response.',
+        skeletonHint: 'app.post("/api/v1/auth/login", (req, res) => {\n  // validate credentials & issue token...\n});',
+      },
+      {
+        stepNumber: 3,
+        title: 'Implement RESTful Resource Endpoints',
+        description: 'Build GET, POST, DELETE endpoints for managing tasks or student resources.',
+        skeletonHint: 'app.get("/api/v1/resources", (req, res) => res.json(items));',
+      },
+    ],
+    starterSkeletonCode: `// Full-Stack Express REST API
+const express = require('express');
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+
+// In-Memory Database
+let items = [
+  { id: 1, title: 'Data Structures Lab Notes', category: 'CS201' },
+  { id: 2, title: 'Operating Systems Kernel Cheat Sheet', category: 'CS301' }
+];
+
+// GET /api/items
+app.get('/api/items', (req, res) => {
+  res.json({ success: true, count: items.length, data: items });
+});
+
+// POST /api/items
+app.post('/api/items', (req, res) => {
+  const { title, category } = req.body;
+  if (!title) {
+    return res.status(400).json({ success: false, error: 'Title is required' });
+  }
+  const newItem = { id: items.length + 1, title, category: category || 'General' };
+  items.push(newItem);
+  res.status(201).json({ success: true, data: newItem });
+});
+
+app.listen(PORT, () => {
+  console.log(\`Server running on http://localhost:\${PORT}\`);
+});`,
   },
 ];
 

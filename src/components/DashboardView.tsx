@@ -49,7 +49,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   // Stats calculation
   const pendingAssignments = assignments.filter((a) => a.status !== 'Submitted');
   const dueSoonAssignments = assignments.filter((a) => a.isDueSoon);
-  const nextUpAssignment = pendingAssignments[0] || assignments[0];
+  const nextUpAssignment = pendingAssignments[0];
   
   // Calculate completed modules and actual overall degree progress
   const completedModules = roadmapModules.filter((m) => m.status === 'completed');
@@ -58,6 +58,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const overallDegreePercent = roadmapModules.length
     ? Math.round(totalProgressSum / roadmapModules.length)
     : 0;
+
+  // 90-Day Contribution Heatmap Data Generation
+  const contributionDays = React.useMemo(() => {
+    const days: { dateStr: string; count: number; label: string }[] = [];
+    const today = new Date();
+    
+    // Generate 91 days (13 weeks * 7 days)
+    for (let i = 90; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      
+      let count = 0;
+      let label = 'No activity recorded';
+
+      if (i === 0) {
+        // Today's activity
+        count = (profile?.streakDays ? 2 : 1) + (completedModulesCount > 0 ? 1 : 0);
+        label = `${count} activities (Login active, streak saved)`;
+      } else if (i < (profile?.streakDays || 0)) {
+        // Active streak days
+        count = ((i * 3 + 1) % 4) + 1;
+        label = `${count} activities (${count > 2 ? 'Lab submitted & code compiled' : 'Daily study login'})`;
+      } else if (i % 7 === 0 || i % 11 === 0) {
+        count = (i % 3) + 1;
+        label = `${count} activities (${count === 1 ? '1 notebook file saved' : '2 code submissions'})`;
+      }
+
+      days.push({ dateStr, count, label });
+    }
+    return days;
+  }, [profile?.streakDays, completedModulesCount]);
+
+  const [hoveredTileData, setHoveredTileData] = useState<{ dateStr: string; count: number; label: string } | null>(null);
 
   // Welcome Quest State
   const [questStep2Done, setQuestStep2Done] = useState<boolean>(() => {
@@ -219,11 +253,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
 
             {/* NEXT QUEST CARD */}
-            {nextUpAssignment && (
+            {nextUpAssignment ? (
               <div className="bg-slate-900/90 border-2 border-indigo-500/40 p-4 sm:p-5 rounded-3xl flex flex-col justify-between gap-3 shrink-0 lg:max-w-sm w-full shadow-2xl relative overflow-hidden">
                 <div className="flex items-center justify-between text-xs text-indigo-300 font-bold">
                   <span className="uppercase tracking-wider flex items-center gap-1 text-[11px]">
-                    <span className="text-amber-400">⚡</span> Next Daily Quest
+                    <span className="text-amber-400">⚡</span> Next Pending Lab Quest
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-extrabold">
                     ACTIVE
@@ -241,10 +275,41 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                 <button
                   onClick={() => onOpenAssignment(nextUpAssignment)}
-                  className="btn-3d btn-3d-amber w-full py-3 px-4 text-slate-950 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 group"
+                  className="btn-3d btn-3d-amber w-full py-3 px-4 text-slate-950 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 group cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-base">bolt</span>
                   <span>Continue Daily Quest</span>
+                  <span className="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">
+                    arrow_forward
+                  </span>
+                </button>
+              </div>
+            ) : (
+              <div className="bg-slate-900/90 border-2 border-indigo-500/40 p-4 sm:p-5 rounded-3xl flex flex-col justify-between gap-3 shrink-0 lg:max-w-sm w-full shadow-2xl relative overflow-hidden">
+                <div className="flex items-center justify-between text-xs text-indigo-300 font-bold">
+                  <span className="uppercase tracking-wider flex items-center gap-1 text-[11px]">
+                    <span className="text-amber-400">⚡</span> Start Your First Quest
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 text-[10px] font-extrabold">
+                    READY
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-white font-extrabold text-sm sm:text-base">
+                    All Current Quests Complete! 🎉
+                  </h3>
+                  <p className="text-slate-400 text-xs mt-0.5 font-medium">
+                    Explore the 4-year CS roadmap or launch the Code Sandbox to begin your next project.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => onNavigateTab('roadmap')}
+                  className="btn-3d btn-3d-amber w-full py-3 px-4 text-slate-950 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 group cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-base">map</span>
+                  <span>Explore CS Roadmap</span>
                   <span className="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">
                     arrow_forward
                   </span>
@@ -402,93 +467,138 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* 4 STAT CARDS WITH 3D DEPTH & ANIMATED COUNTERS */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
+          {/* Card 1: Degree Completion with Circular Progress Ring */}
           <div
             onClick={() => onNavigateTab('roadmap')}
             className="card-3d p-5 cursor-pointer flex flex-col justify-between space-y-3 group border-l-4 border-l-indigo-500"
           >
             <div className="flex items-center justify-between">
-              <div className="w-11 h-11 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xl shadow-xs">
-                <span className="material-symbols-outlined">workspace_premium</span>
-              </div>
+              <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Degree Completion</span>
               <span className="material-symbols-outlined text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all">
                 arrow_forward
               </span>
             </div>
-            <div>
-              <p className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Degree Completion</p>
-              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-0.5">
-                <AnimatedCounter value={overallDegreePercent} suffix="%" />
-              </p>
-            </div>
-            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-full rounded-full" style={{ width: `${overallDegreePercent}%` }} />
+
+            <div className="flex items-center gap-4 py-1">
+              {/* SVG Circular Progress Ring */}
+              <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
+                <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64">
+                  <circle
+                    cx="32"
+                    cy="32"
+                    r="26"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    className="text-indigo-100 dark:text-slate-800"
+                    fill="transparent"
+                  />
+                  <circle
+                    cx="32"
+                    cy="32"
+                    r="26"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    strokeDasharray={163.36}
+                    strokeDashoffset={163.36 - (163.36 * Math.min(100, Math.max(0, overallDegreePercent))) / 100}
+                    strokeLinecap="round"
+                    className="text-indigo-600 transition-all duration-700 ease-out"
+                    fill="transparent"
+                  />
+                </svg>
+                <span className="absolute text-xs font-black text-slate-900 dark:text-white">
+                  {overallDegreePercent}%
+                </span>
+              </div>
+
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold leading-tight">
+                  {completedModulesCount} of {roadmapModules.length} core modules finished
+                </p>
+                <span className="inline-block mt-1 text-[10px] font-extrabold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded-md">
+                  Active Pace
+                </span>
+              </div>
             </div>
           </div>
 
+          {/* Card 2: Pending Labs with Icon + Label Badge Styling */}
           <div
             onClick={scrollToAssignments}
             className="card-3d p-5 cursor-pointer flex flex-col justify-between space-y-3 group border-l-4 border-l-amber-500"
           >
             <div className="flex items-center justify-between">
-              <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xl shadow-xs">
-                <span className="material-symbols-outlined">assignment_late</span>
-              </div>
+              <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Pending Labs</span>
               <span className="material-symbols-outlined text-slate-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all">
                 arrow_forward
               </span>
             </div>
-            <div>
-              <p className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Pending Labs</p>
-              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-0.5">
-                <AnimatedCounter value={pendingAssignments.length} />
-              </p>
+
+            <div className="py-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800/80 font-black text-sm shadow-xs">
+                <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-lg">assignment_late</span>
+                <span className="text-xl sm:text-2xl font-black text-amber-950 dark:text-amber-100">
+                  <AnimatedCounter value={pendingAssignments.length} />
+                </span>
+                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-800 dark:text-amber-300">Active</span>
+              </div>
             </div>
+
             <p className="text-xs font-bold text-amber-600 flex items-center gap-1">
               <span>⚠️</span> {dueSoonAssignments.length} assignments due soon
             </p>
           </div>
 
+          {/* Card 3: Notebook Library with Icon + Label Badge Styling */}
           <div
             onClick={() => onNavigateTab('resources')}
             className="card-3d p-5 cursor-pointer flex flex-col justify-between space-y-3 group border-l-4 border-l-emerald-500"
           >
             <div className="flex items-center justify-between">
-              <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xl shadow-xs">
-                <span className="material-symbols-outlined">menu_book</span>
-              </div>
+              <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Notebook Library</span>
               <span className="material-symbols-outlined text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all">
                 arrow_forward
               </span>
             </div>
-            <div>
-              <p className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Notebook Library</p>
-              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-0.5">
-                <AnimatedCounter value={notebooks.length} />
-              </p>
+
+            <div className="py-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800/80 font-black text-sm shadow-xs">
+                <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-lg">menu_book</span>
+                <span className="text-xl sm:text-2xl font-black text-emerald-950 dark:text-emerald-100">
+                  <AnimatedCounter value={notebooks.length} />
+                </span>
+                <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Saved</span>
+              </div>
             </div>
+
             <p className="text-xs font-bold text-emerald-600">
               {notebooks.reduce((acc, n) => acc + n.fileCount, 0)} research files synced
             </p>
           </div>
 
+          {/* Card 4: Academic Performance with Friendly Empty State */}
           <div
             onClick={() => setShowGradeModal(true)}
             className="card-3d p-5 cursor-pointer flex flex-col justify-between space-y-3 group border-l-4 border-l-purple-500"
           >
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-lg">
-                <span className="material-symbols-outlined">analytics</span>
-              </div>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Academic Performance</span>
               <span className="material-symbols-outlined text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all">
                 arrow_forward
               </span>
             </div>
+
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Academic Performance</p>
-              <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5">
-                {completedModulesCount > 0 ? `${calcGPA} GPA` : 'N/A'}
-              </p>
+              {completedModulesCount > 0 ? (
+                <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5">
+                  {calcGPA} GPA
+                </p>
+              ) : (
+                <div className="text-xs font-extrabold text-purple-800 dark:text-purple-200 bg-purple-100/90 dark:bg-purple-950/80 px-3 py-2 rounded-xl border border-purple-200 dark:border-purple-800 flex items-center gap-1.5">
+                  <span>🎓</span> Complete your first module to see this
+                </div>
+              )}
             </div>
+
             <p className="text-xs font-semibold text-purple-600">
               {completedModulesCount > 0 ? `Based on ${completedModulesCount} completed modules` : 'Calculated upon 1st completed module'}
             </p>
@@ -501,70 +611,31 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           
           <div className="lg:col-span-8 space-y-6">
             
-            {/* MODULE PROGRESS */}
-            <div className="bg-white rounded-3xl border-2 border-slate-200/90 p-5 sm:p-6 shadow-xl space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                <div>
-                  <h2 className="text-lg font-extrabold text-slate-900">Semester {currentSemNum} Core Path</h2>
-                  <p className="text-xs text-slate-500 font-medium">Click module to jump to curriculum detail</p>
+            {/* ROADMAP QUICK-LAUNCH CARD */}
+            <div className="bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950 rounded-3xl border-2 border-indigo-500/40 p-6 text-white shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden">
+              <div className="absolute right-0 top-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+              
+              <div className="space-y-2 relative z-10 max-w-xl">
+                <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-black uppercase tracking-wider border border-indigo-400/30">
+                  <span>🗺️</span> Semester {currentSemNum} Curriculum Progress
                 </div>
-
-                <button
-                  onClick={() => onNavigateTab('roadmap')}
-                  className="btn-3d btn-3d-slate py-1.5 px-3.5 text-slate-800 text-xs font-extrabold flex items-center gap-1 self-start sm:self-auto"
-                >
-                  <span>Full 4-Year Map</span>
-                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                </button>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                  4-Year CS Academic Roadmap
+                </h2>
+                <p className="text-xs sm:text-sm text-indigo-100/80 font-medium leading-relaxed">
+                  You're <strong className="text-amber-300">{activeSemProgress}%</strong> through your Semester {currentSemNum} core coursework. Review full subject modules, AI study notes, and curated video labs on the Roadmap page.
+                </p>
               </div>
 
-              <div className="space-y-3">
-                {activeSemMods.slice(0, 4).map((mod, idx) => {
-                  const borderColors = [
-                    'border-t-4 border-t-indigo-500 shadow-indigo-500/10',
-                    'border-t-4 border-t-purple-500 shadow-purple-500/10',
-                    'border-t-4 border-t-emerald-500 shadow-emerald-500/10',
-                    'border-t-4 border-t-amber-500 shadow-amber-500/10',
-                  ];
-                  const borderStyle = borderColors[idx % borderColors.length];
-
-                  return (
-                    <div
-                      key={mod.id}
-                      onClick={() => {
-                        onNavigateTab('roadmap');
-                        notify(`Selected module: ${mod.title}`);
-                      }}
-                      className={`card-3d p-4 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 group ${borderStyle}`}
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-extrabold text-[10px] uppercase border border-indigo-200">
-                            {mod.id.toUpperCase()}
-                          </span>
-                          <span className="text-xs text-slate-500 font-bold">{mod.category}</span>
-                          <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800/80 px-2 py-0.5 rounded-md">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span>🔥 {118 + ((idx * 31) % 65)} students active now</span>
-                          </span>
-                        </div>
-                        <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                          {mod.title}
-                        </h3>
-                      </div>
-
-                      <div className="flex items-center gap-3 min-w-[140px] sm:justify-end">
-                        <div className="flex-1 sm:w-28 bg-slate-200/90 h-2.5 rounded-full overflow-hidden border border-slate-300/50">
-                          <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 h-full rounded-full" style={{ width: `${mod.progress}%` }} />
-                        </div>
-                        <span className="font-extrabold text-xs text-slate-700 min-w-[35px] text-right font-mono">
-                          {mod.progress}%
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <button
+                onClick={() => onNavigateTab('roadmap')}
+                className="btn-3d btn-3d-amber px-5 py-3 text-slate-950 font-extrabold text-xs sm:text-sm flex items-center gap-2 shrink-0 cursor-pointer shadow-lg group relative z-10"
+              >
+                <span>Continue where you left off</span>
+                <span className="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">
+                  arrow_forward
+                </span>
+              </button>
             </div>
 
             {/* FIRST-YEAR SURVIVAL & COMMON MISTAKES BLOCK */}
@@ -753,52 +824,78 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 ) : (
                   filteredAssignments.map((asg) => {
                   const isSubmitted = asg.status === 'Submitted';
+                  const diff = asg.difficulty || 'Beginner';
 
                   return (
                     <div
                       key={asg.id}
-                      className="bg-slate-50 border-2 border-slate-200/80 hover:border-slate-300 rounded-2xl p-4 transition-all shadow-xs hover:shadow-md flex flex-col justify-between space-y-4 group"
+                      onClick={() => onOpenAssignment(asg)}
+                      className="bg-slate-50 dark:bg-slate-900 border-2 border-slate-200/80 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-2xl p-4 transition-all shadow-xs hover:shadow-md flex flex-col justify-between space-y-4 group cursor-pointer"
                     >
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold text-[10px]">
-                            {asg.course}
-                          </span>
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 font-bold text-[10px]">
+                              {asg.course}
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                                diff === 'Beginner'
+                                  ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300'
+                                  : diff === 'Intermediate'
+                                  ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'
+                                  : 'bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300'
+                              }`}
+                            >
+                              {diff}
+                            </span>
+                          </div>
+
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                               isSubmitted
-                                ? 'bg-emerald-100 text-emerald-800'
+                                ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300'
                                 : asg.isDueSoon
-                                ? 'bg-rose-100 text-rose-800'
-                                : 'bg-amber-100 text-amber-800'
+                                ? 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300'
+                                : 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'
                             }`}
                           >
                             {isSubmitted ? `Graded ${asg.grade || 'A+'}` : asg.dueDate}
                           </span>
                         </div>
 
-                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                           {asg.title}
                         </h3>
 
-                        <p className="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium line-clamp-2 leading-relaxed">
                           {asg.description}
                         </p>
 
-                        <div className="pt-1 flex items-center gap-2 text-[11px] text-slate-400 font-mono">
+                        {/* Concept Explainer & Roadmap Badge */}
+                        {asg.roadmapSteps && asg.roadmapSteps.length > 0 && (
+                          <div className="pt-1 flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 dark:text-indigo-300">
+                            <span className="material-symbols-outlined text-xs">menu_book</span>
+                            <span>Includes Concept Guide & {asg.roadmapSteps.length}-Step Roadmap</span>
+                          </div>
+                        )}
+
+                        <div className="pt-0.5 flex items-center gap-2 text-[11px] text-slate-400 font-mono">
                           <span>File: {asg.filename}</span>
                         </div>
                       </div>
 
-                      <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between gap-2">
+                      <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
                         {onOpenAIAssistant && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              onOpenAIAssistant(asg.submissionCode || `// ${asg.title}`);
+                              onOpenAIAssistant(
+                                `Help me understand the assignment "${asg.title}" (${asg.filename}). Can you explain the concepts or give me a quick hint?`
+                              );
                               notify(`Asking AI Tutor for help with ${asg.title}`);
                             }}
-                            className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 bg-indigo-50 dark:bg-indigo-950/80 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
                           >
                             <span className="material-symbols-outlined text-xs">auto_awesome</span>
                             <span>AI Help</span>
@@ -806,17 +903,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         )}
 
                         <button
-                          onClick={() => onOpenAssignment(asg)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenAssignment(asg);
+                          }}
                           className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer ${
                             isSubmitted
-                              ? 'bg-slate-200 hover:bg-slate-300 text-slate-800'
-                              : 'bg-slate-900 hover:bg-slate-800 text-white'
+                              ? 'bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200'
+                              : 'bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-500 text-white'
                           }`}
                         >
                           <span className="material-symbols-outlined text-sm">
-                            {isSubmitted ? 'visibility' : 'code'}
+                            {isSubmitted ? 'visibility' : 'menu_book'}
                           </span>
-                          <span>{isSubmitted ? 'View Submission' : 'Start Solution'}</span>
+                          <span>{isSubmitted ? 'View Submission' : 'Concept & Solution'}</span>
                         </button>
                       </div>
                     </div>
@@ -829,149 +929,77 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <div className="lg:col-span-4 space-y-6">
             
-            {/* COMMIT ACTIVITY GRID */}
-            <div className="bg-white rounded-2xl border-2 border-slate-200/80 p-5 shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
+            {/* 90-DAY GITHUB-STYLE CONTRIBUTION HEATMAP */}
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 p-5 shadow-xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-indigo-600 text-lg">grid_on</span>
-                  <h3 className="text-sm font-bold text-slate-900">Commit Activity Grid</h3>
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-sm shadow-xs">
+                    <span className="material-symbols-outlined text-base">grid_on</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">CS Activity & Commit Heatmap</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Real-time lab, code & login streak log</p>
+                  </div>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400 uppercase">28 Days</span>
-              </div>
-
-              <div className="flex flex-col items-center py-2 bg-slate-50 p-3 rounded-xl border border-slate-200/70">
-                <div className="grid grid-rows-4 grid-flow-col gap-1.5">
-                  {Array.from({ length: 28 }).map((_, idx) => {
-                    const dayNum = idx + 1;
-                    const count = (idx * 7 + 3) % 9;
-                    let bgClass = 'bg-slate-200/80 border-slate-300/60';
-                    if (count > 6) bgClass = 'bg-indigo-600 border-indigo-700';
-                    else if (count > 3) bgClass = 'bg-indigo-400 border-indigo-500';
-                    else if (count > 0) bgClass = 'bg-indigo-200 border-indigo-300';
-
-                    return (
-                      <button
-                        key={idx}
-                        onMouseEnter={() => setHoveredTile({ day: dayNum, count })}
-                        onMouseLeave={() => setHoveredTile(null)}
-                        onClick={() => notify(`Day ${dayNum}: ${count} code commits recorded on GitHub.`)}
-                        className={`w-3.5 h-3.5 rounded border transition-all hover:scale-125 cursor-pointer ${bgClass}`}
-                        title={`Day ${dayNum}: ${count} commits`}
-                      />
-                    );
-                  })}
-                </div>
-
-                <div className="h-5 text-[11px] font-medium text-indigo-700 mt-2 font-mono">
-                  {hoveredTile ? (
-                    <span>Day {hoveredTile.day}: {hoveredTile.count} commits logged</span>
-                  ) : (
-                    <span className="text-slate-400">Hover or click any cell</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* INTERACTIVE PLAYGROUND TERMINAL */}
-            <div className="bg-slate-950 text-slate-100 rounded-2xl p-4 shadow-xl border-2 border-slate-800 flex flex-col font-mono text-xs space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                <span className="flex items-center gap-2 text-emerald-400 font-bold text-[11px]">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  CS CODE TERMINAL
+                <span className="text-[10px] font-mono font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950 px-2.5 py-1 rounded-full border border-indigo-200 dark:border-indigo-800 uppercase">
+                  Last 90 Days
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setTerminalLogs(['[00:00] Terminal cleared.'])}
-                  className="text-[10px] text-slate-400 hover:text-white px-2 py-0.5 bg-slate-800 rounded font-medium"
-                >
-                  clear
-                </button>
               </div>
 
-              <div className="space-y-1 text-[10px] text-slate-300 max-h-[110px] overflow-y-auto leading-relaxed pr-1">
-                {terminalLogs.map((log, idx) => (
-                  <div key={idx}>
-                    {log.startsWith('[') ? (
-                      <span>
-                        <span className="text-indigo-400">{log.substring(0, log.indexOf(']') + 1)}</span>
-                        {log.substring(log.indexOf(']') + 1)}
-                      </span>
+              <div className="p-3 bg-slate-50 dark:bg-slate-950/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
+                {/* 13-Week Grid (7 Rows x 13 Columns) */}
+                <div className="overflow-x-auto pb-1">
+                  <div className="inline-grid grid-rows-7 grid-flow-col gap-1.5 min-w-[260px]">
+                    {contributionDays.map((tile, idx) => {
+                      let bgClass = 'bg-slate-100 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/60';
+                      if (tile.count >= 4) {
+                        bgClass = 'bg-emerald-600 dark:bg-emerald-400 border-emerald-700 dark:border-emerald-300';
+                      } else if (tile.count === 3) {
+                        bgClass = 'bg-emerald-500 dark:bg-emerald-500 border-emerald-600 dark:border-emerald-400';
+                      } else if (tile.count === 2) {
+                        bgClass = 'bg-emerald-400 dark:bg-emerald-700 border-emerald-500 dark:border-emerald-600';
+                      } else if (tile.count === 1) {
+                        bgClass = 'bg-emerald-200 dark:bg-emerald-950 border-emerald-300 dark:border-emerald-800';
+                      }
+
+                      return (
+                        <button
+                          key={idx}
+                          onMouseEnter={() => setHoveredTileData(tile)}
+                          onMouseLeave={() => setHoveredTileData(null)}
+                          onClick={() => notify(`${tile.dateStr}: ${tile.label}`)}
+                          className={`w-3.5 h-3.5 rounded-xs border transition-all duration-150 hover:scale-125 hover:z-10 cursor-pointer ${bgClass}`}
+                          title={`${tile.dateStr}: ${tile.label}`}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Heatmap Tooltip Bar & Legend */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800 text-xs">
+                  <div className="font-semibold text-slate-700 dark:text-slate-300 min-h-[1.25rem] flex items-center gap-1.5">
+                    {hoveredTileData ? (
+                      <>
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="font-bold text-slate-900 dark:text-white">{hoveredTileData.dateStr}:</span>
+                        <span className="text-slate-600 dark:text-slate-400">{hoveredTileData.label}</span>
+                      </>
                     ) : (
-                      log
+                      <span className="text-slate-400 text-[11px]">Hover over any tile to view daily activity logs</span>
                     )}
                   </div>
-                ))}
-                <div ref={terminalEndRef} />
-              </div>
 
-              <form onSubmit={handleTerminalSubmit} className="pt-2 border-t border-slate-800 flex gap-2">
-                <span className="text-emerald-400 font-bold">$</span>
-                <input
-                  type="text"
-                  value={terminalInput}
-                  onChange={(e) => setTerminalInput(e.target.value)}
-                  placeholder="type 'help', 'compile'..."
-                  className="flex-1 bg-transparent text-white text-[11px] focus:outline-none placeholder:text-slate-600 font-mono"
-                />
-                <button
-                  type="submit"
-                  className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
-                >
-                  Run
-                </button>
-              </form>
-            </div>
-
-            {/* ACTIVE TECH STACK CARD */}
-            <div className="bg-white rounded-2xl border-2 border-slate-200/80 p-5 shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-indigo-600 text-lg">code_blocks</span>
-                  <h3 className="text-sm font-bold text-slate-900">Active Tech Stack</h3>
-                </div>
-                <button
-                  onClick={() => onNavigateTab('languages')}
-                  className="text-[10px] font-bold text-slate-500 hover:text-indigo-600 uppercase bg-slate-100 px-2 py-1 rounded cursor-pointer"
-                >
-                  Stack →
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                <div
-                  onClick={() => onNavigateTab('languages')}
-                  className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/80 transition-all cursor-pointer flex items-center justify-between group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-xs">
-                      Py
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-indigo-600">Python 3.12</p>
-                      <p className="text-[10px] text-slate-500">AI & PyTorch</p>
-                    </div>
+                  {/* Heatmap Intensity Legend */}
+                  <div className="flex items-center gap-1 text-[10px] font-extrabold text-slate-400 self-end sm:self-auto shrink-0">
+                    <span>Less</span>
+                    <span className="w-2.5 h-2.5 rounded-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+                    <span className="w-2.5 h-2.5 rounded-xs bg-emerald-200 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-800" />
+                    <span className="w-2.5 h-2.5 rounded-xs bg-emerald-400 dark:bg-emerald-700 border border-emerald-500 dark:border-emerald-600" />
+                    <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500 border border-emerald-600" />
+                    <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600 dark:bg-emerald-400 border border-emerald-700 dark:border-emerald-300" />
+                    <span>More</span>
                   </div>
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">
-                    Advanced
-                  </span>
-                </div>
-
-                <div
-                  onClick={() => onNavigateTab('languages')}
-                  className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/80 transition-all cursor-pointer flex items-center justify-between group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center font-bold text-xs">
-                      C++
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-indigo-600">C++20</p>
-                      <p className="text-[10px] text-slate-500">Systems & Memory</p>
-                    </div>
-                  </div>
-                  <span className="px-2 py-0.5 bg-sky-100 text-sky-800 text-[10px] font-bold rounded-full">
-                    Interm
-                  </span>
                 </div>
               </div>
             </div>

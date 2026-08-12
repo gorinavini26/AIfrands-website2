@@ -54,6 +54,24 @@ export interface AITool {
   url: string;
 }
 
+export interface ConceptKeyTerm {
+  term: string;
+  definition: string;
+}
+
+export interface ConceptExplainer {
+  whatIsIt: string;
+  whyItIsUsed: string;
+  keyTerms: ConceptKeyTerm[];
+}
+
+export interface RoadmapStep {
+  stepNumber: number;
+  title: string;
+  description: string;
+  skeletonHint?: string;
+}
+
 export interface Assignment {
   id: string;
   title: string;
@@ -65,6 +83,10 @@ export interface Assignment {
   grade?: string;
   description: string;
   submissionCode?: string;
+  difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
+  conceptExplainer?: ConceptExplainer;
+  roadmapSteps?: RoadmapStep[];
+  starterSkeletonCode?: string;
 }
 
 export interface Notebook {

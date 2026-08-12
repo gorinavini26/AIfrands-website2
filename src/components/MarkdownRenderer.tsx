@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 interface MarkdownRendererProps {
   content: string;
   className?: string;
-  variant?: 'light' | 'chat' | 'dark';
+  variant?: 'light' | 'chat' | 'dark' | 'notes';
 }
 
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
@@ -21,60 +21,66 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   };
 
   let codeBlockCounter = 0;
+  const isNotes = variant === 'notes';
 
   return (
     <div className={`markdown-content space-y-2 text-xs leading-relaxed ${className}`}>
       <ReactMarkdown
         components={{
           h1: ({ children }) => (
-            <h1 className="text-lg sm:text-xl font-extrabold text-indigo-900 dark:text-indigo-300 mt-4 mb-2 pb-1 border-b border-indigo-200 dark:border-indigo-800 flex items-center gap-2">
-              <span className="text-amber-500 font-mono">#</span>
+            <h1 className={isNotes ? "text-xl sm:text-2xl font-black text-white mt-5 mb-3 pb-2 border-b-2 border-indigo-500/30 flex items-center gap-2" : "text-lg sm:text-xl font-extrabold text-indigo-900 dark:text-indigo-300 mt-4 mb-2 pb-1 border-b border-indigo-200 dark:border-indigo-800 flex items-center gap-2"}>
+              <span className="text-amber-400 font-mono">#</span>
               <span>{children}</span>
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white mt-3.5 mb-1.5 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-indigo-600 inline-block"></span>
+            <h2 className={isNotes ? "text-lg sm:text-xl font-black text-amber-300 mt-6 mb-3 pt-3 border-t border-slate-800 flex items-center gap-2" : "text-base sm:text-lg font-extrabold text-slate-900 dark:text-white mt-3.5 mb-1.5 flex items-center gap-1.5"}>
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block shrink-0 shadow-xs shadow-amber-400/50" />
               <span>{children}</span>
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-sm font-extrabold text-indigo-800 dark:text-indigo-400 mt-3 mb-1">
-              {children}
+            <h3 className={isNotes ? "text-base sm:text-lg font-extrabold text-amber-300 dark:text-amber-300 mt-6 mb-3 pt-3 border-t border-slate-800/80 flex items-center gap-2.5 tracking-tight" : "text-sm font-extrabold text-indigo-800 dark:text-indigo-400 mt-3 mb-1"}>
+              {isNotes && (
+                <span className="px-2 py-0.5 rounded-md bg-amber-400/15 text-amber-300 border border-amber-400/30 text-xs font-black shrink-0">
+                  📌 Concept
+                </span>
+              )}
+              <span>{children}</span>
             </h3>
           ),
           p: ({ children }) => (
-            <p className="my-1.5 text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
+            <p className={isNotes ? "my-2.5 text-slate-200 font-normal text-xs sm:text-sm leading-relaxed" : "my-1.5 text-slate-800 dark:text-slate-200 font-medium leading-relaxed"}>
               {children}
             </p>
           ),
           strong: ({ children }) => (
-            <strong className="font-extrabold text-indigo-900 dark:text-amber-300 bg-indigo-50 dark:bg-indigo-950/80 px-1.5 py-0.5 rounded-md border border-indigo-200/80 dark:border-indigo-800/80">
+            <strong className={isNotes ? "font-extrabold text-amber-300 bg-amber-400/15 border border-amber-400/30 px-1.5 py-0.5 rounded-md mx-0.5 inline-block text-[0.93em] shadow-2xs" : "font-extrabold text-indigo-900 dark:text-amber-300 bg-indigo-50 dark:bg-indigo-950/80 px-1.5 py-0.5 rounded-md border border-indigo-200/80 dark:border-indigo-800/80"}>
               {children}
             </strong>
           ),
           em: ({ children }) => (
-            <em className="italic text-slate-700 dark:text-slate-300 font-serif">
+            <em className="italic text-slate-300 dark:text-slate-300 font-serif">
               {children}
             </em>
           ),
           ul: ({ children }) => (
-            <ul className="my-2 space-y-1.5 pl-2 border-l-2 border-indigo-300 dark:border-indigo-800">
+            <ul className={isNotes ? "my-3 space-y-2 pl-3 border-l-2 border-indigo-500/40" : "my-2 space-y-1.5 pl-2 border-l-2 border-indigo-300 dark:border-indigo-800"}>
               {children}
             </ul>
           ),
           ol: ({ children }) => (
-            <ol className="my-2 space-y-1.5 pl-4 list-decimal marker:font-extrabold marker:text-indigo-600 dark:marker:text-indigo-400">
+            <ol className={isNotes ? "my-3 space-y-2.5 pl-5 list-decimal marker:text-amber-400 marker:font-black text-slate-200" : "my-2 space-y-1.5 pl-4 list-decimal marker:font-extrabold marker:text-indigo-600 dark:marker:text-indigo-400"}>
               {children}
             </ol>
           ),
           li: ({ children }) => (
-            <li className="text-slate-800 dark:text-slate-200 font-medium pl-1 leading-relaxed">
+            <li className={isNotes ? "text-slate-200 font-medium text-xs sm:text-sm leading-relaxed pl-1 list-disc marker:text-amber-400 marker:font-black" : "text-slate-800 dark:text-slate-200 font-medium pl-1 leading-relaxed"}>
               {children}
             </li>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="my-3 p-3 bg-amber-50/80 dark:bg-amber-950/30 border-l-4 border-amber-500 text-slate-800 dark:text-amber-200 rounded-r-2xl text-xs font-medium italic">
+            <blockquote className="my-3 p-3.5 bg-amber-500/10 border-l-4 border-amber-400 text-amber-200 rounded-r-2xl text-xs font-medium italic space-y-1">
               {children}
             </blockquote>
           ),

@@ -461,6 +461,7 @@ export function App() {
               setAIAssistantCode(undefined);
               setShowAIAssistant(true);
             }}
+            onShowToast={(msg) => setToastMessage(msg)}
           />
         )}
 
