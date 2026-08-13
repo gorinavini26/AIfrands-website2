@@ -210,15 +210,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col w-full text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 min-h-screen p-4 sm:p-6 lg:p-8 space-y-6">
-      <div className="w-full max-w-7xl mx-auto space-y-6">
+    <div className="flex flex-col w-full text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 dark:from-slate-950 dark:via-indigo-950/40 dark:to-slate-900 min-h-screen p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
+      <div className="w-full max-w-7xl mx-auto space-y-4 sm:space-y-6">
 
         {/* HERO SECTION - PLAYFUL 3D GRADIENT */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900 via-purple-950 to-slate-950 text-white p-6 sm:p-8 border-4 border-indigo-900/80 shadow-2xl shadow-indigo-950/30">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900 via-purple-950 to-slate-950 text-white p-4 sm:p-8 border-2 sm:border-4 border-indigo-900/80 shadow-2xl shadow-indigo-950/30">
           <div className="absolute right-0 top-0 w-96 h-96 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="space-y-3.5 max-w-2xl">
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
+            <div className="space-y-3 max-w-2xl">
               <div className="flex flex-wrap items-center gap-2">
                 {(profile?.streakDays || 0) > 0 ? (
                   <span className="badge-chunky bg-amber-400 text-slate-950 border-b-2 border-amber-600 flex items-center gap-1.5">

@@ -168,8 +168,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col w-full px-4 sm:px-6 py-6 space-y-6 text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 min-h-screen">
-      <div className="max-w-7xl mx-auto w-full space-y-6">
+    <div className="flex flex-col w-full text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 dark:from-slate-950 dark:via-indigo-950/40 dark:to-slate-900 min-h-screen p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
+      <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
         
         {/* Profile Header Section */}
         <section className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">

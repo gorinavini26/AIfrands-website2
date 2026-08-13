@@ -476,7 +476,7 @@ export const CodingGameView: React.FC<CodingGameViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 pb-12 animate-fade-in text-slate-900 dark:text-slate-100">
+    <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-full overflow-x-hidden pb-12 animate-fade-in text-slate-900 dark:text-slate-100">
       {/* Show Confetti on Level Win */}
       {showWinModal && <ConfettiCanvas />}
 

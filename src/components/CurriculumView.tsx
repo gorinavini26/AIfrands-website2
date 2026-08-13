@@ -82,9 +82,9 @@ export const CurriculumView: React.FC<CurriculumViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
       {/* Top Header & Breadcrumb Bar (Strict 1-Level View Enforcer) */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-3.5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           {/* Dynamic Breadcrumb Path */}
           <nav className="flex items-center flex-wrap gap-2 text-xs font-bold text-slate-400 mb-2">

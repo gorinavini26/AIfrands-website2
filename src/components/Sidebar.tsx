@@ -85,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold tracking-wide transition-all cursor-pointer text-left ${
+                className={`w-full flex items-center justify-between px-3.5 py-3 min-h-[44px] rounded-2xl text-xs font-extrabold tracking-wide transition-all cursor-pointer text-left ${
                   isActive
                     ? 'btn-3d btn-3d-indigo w-full border-b-4 border-indigo-900 shadow-lg shadow-indigo-600/30'
                     : 'text-slate-300 hover:bg-slate-800/90 hover:text-white border-2 border-transparent hover:border-slate-700/60'

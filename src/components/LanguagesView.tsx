@@ -36,11 +36,11 @@ export const LanguagesView: React.FC<LanguagesViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col w-full text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
-      <div className="max-w-7xl mx-auto w-full space-y-8">
+    <div className="flex flex-col w-full text-slate-800 bg-gradient-to-br from-indigo-50/90 via-purple-50/60 to-slate-100 dark:from-slate-950 dark:via-indigo-950/40 dark:to-slate-900 min-h-screen p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
+      <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
         
         {/* HERO BANNER - ELECTRIC BLUE / CYAN ACCENT */}
-        <div className="bg-gradient-to-r from-blue-800 via-indigo-900 to-slate-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-blue-950/25 border-b-4 border-blue-950 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-800 via-indigo-900 to-slate-950 rounded-3xl p-4 sm:p-8 text-white shadow-xl shadow-blue-950/25 border-b-4 border-blue-950 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 relative overflow-hidden">
           <div className="absolute right-0 top-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="space-y-2 max-w-2xl relative z-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-400 text-slate-950 text-xs font-extrabold shadow-sm border-b-2 border-cyan-600">

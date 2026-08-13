@@ -422,7 +422,7 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="pt-14 lg:pl-64 flex-1 flex flex-col transition-all bg-slate-50 min-h-screen">
+      <main className="pt-14 pb-20 lg:pb-8 lg:pl-64 flex-1 flex flex-col transition-all bg-slate-50 dark:bg-slate-950 min-h-screen">
         {activeTab === 'dashboard' && (
           <DashboardView
             profile={profile}
@@ -507,6 +507,43 @@ export function App() {
           />
         )}
       </main>
+
+      {/* Mobile Bottom Navigation Bar (App-like Mobile Experience) */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-900/95 text-slate-300 backdrop-blur-md border-t border-slate-800 z-40 flex items-center justify-around px-1 shadow-2xl">
+        {[
+          { id: 'dashboard', label: 'Home', icon: 'grid_view' },
+          { id: 'code-quest', label: 'Quest', icon: 'sports_esports' },
+          { id: 'roadmap', label: 'Roadmap', icon: 'map' },
+          { id: 'ai-tools', label: 'AI Tools', icon: 'auto_awesome' },
+          { id: 'languages', label: 'Stack', icon: 'code_blocks' },
+          { id: 'resources', label: 'Notes', icon: 'menu_book' },
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-col items-center justify-center min-h-[44px] min-w-[44px] px-1 py-1 rounded-xl transition-all ${
+                isActive ? 'text-amber-400 font-extrabold' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <span className={`material-symbols-outlined text-[20px] ${isActive ? 'animate-bounce-subtle' : ''}`}>
+                {tab.icon}
+              </span>
+              <span className="text-[10px] font-bold tracking-tight mt-0.5">{tab.label}</span>
+            </button>
+          );
+        })}
+
+        <button
+          onClick={() => setIsMobileOpen(true)}
+          className="flex flex-col items-center justify-center min-h-[44px] min-w-[44px] px-1 py-1 rounded-xl text-slate-400 hover:text-white transition-all"
+          title="More Menu"
+        >
+          <span className="material-symbols-outlined text-[20px]">menu</span>
+          <span className="text-[10px] font-bold tracking-tight mt-0.5">Menu</span>
+        </button>
+      </nav>
 
       {/* Modals & Overlays */}
       <OnboardingModal
